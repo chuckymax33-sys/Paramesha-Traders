@@ -193,68 +193,72 @@ export default function ParameshaInvoiceTemplate({
           className="invoice-page html2pdf__page-break" 
           style={{ marginBottom: pageIndex < chunks.length - 1 ? '20px' : '0' }}
         >
-          <div className="top-row">
-            <div className="tax-title">TAX INVOICE {chunks.length > 1 ? `(Page ${pageIndex + 1} of ${chunks.length})` : ''}</div>
-            <div className="cells">
-              <div>Cell : {cell1}</div>
-              <div>{cell2}</div>
-            </div>
-          </div>
-
-          <div className="company-block">
-            <div className="company-name">PARAMESHA TRADERS</div>
-            <div className="subtitle">BUILDING MATERIAL SUPPLIERS</div>
-            <div className="subtitle">SAND, METAL, ROBO SAND, BRICKS ETC</div>
-            <div className="address-line">
-              H.No. 3-9-545/1, Plot No. 17, Sri Rama Hills, Mansoorabad, L.B. Nagar,
-              Hyd - 500 068.
-            </div>
-          </div>
-
-          <div className="state-row">
-            <div>
-              <strong>State :</strong> TELANGANA
-            </div>
-            <div>
-              <strong>State Code :</strong> 36
-            </div>
-            <div>
-              <strong>GSTIN :</strong> 36AJZPG2941A1Z8
-            </div>
-          </div>
-
-          <div className="info-grid">
-            <div style={{ display: "flex", justifyContent: "space-between" }}>
-              <div className="info-item" style={{ flex: 1, paddingRight: "16px" }}>
-                <span className="label">Invoice No.</span>
-                <span className="value handwritten" style={{ fontWeight: 400, fontSize: "17px" }}>{invoiceNo}</span>
+          {pageIndex === 0 && (
+            <>
+              <div className="top-row">
+                <div className="tax-title">TAX INVOICE {chunks.length > 1 ? `(Page ${pageIndex + 1} of ${chunks.length})` : ''}</div>
+                <div className="cells">
+                  <div>Cell : {cell1}</div>
+                  <div>{cell2}</div>
+                </div>
               </div>
 
-              <div className="info-item right" style={{ flex: "0 0 200px", marginTop: 0, paddingTop: "1.4mm", paddingBottom: "1.4mm" }}>
-                <span className="label" style={{ minWidth: "auto", marginRight: "6px" }}>Date :</span>
-                <span className="value handwritten" style={{ fontSize: "17px" }}>{invoiceDate}</span>
+              <div className="company-block">
+                <div className="company-name">PARAMESHA TRADERS</div>
+                <div className="subtitle">BUILDING MATERIAL SUPPLIERS</div>
+                <div className="subtitle">SAND, METAL, ROBO SAND, BRICKS ETC</div>
+                <div className="address-line">
+                  H.No. 3-9-545/1, Plot No. 17, Sri Rama Hills, Mansoorabad, L.B. Nagar,
+                  Hyd - 500 068.
+                </div>
               </div>
-            </div>
 
-            <div className="info-item full">
-              <span className="label">NAME</span>
-              <span className="value handwritten" style={{ fontWeight: 400, fontSize: "17px" }}>{customerName}</span>
-            </div>
+              <div className="state-row">
+                <div>
+                  <strong>State :</strong> TELANGANA
+                </div>
+                <div>
+                  <strong>State Code :</strong> 36
+                </div>
+                <div>
+                  <strong>GSTIN :</strong> 36AJZPG2941A1Z8
+                </div>
+              </div>
 
-            <div className="info-item full">
-              <span className="label">ADDRESS</span>
-              <span className="value handwritten" style={{ fontWeight: 400, fontSize: "17px" }}>{address}</span>
-            </div>
+              <div className="info-grid">
+                <div style={{ display: "flex", justifyContent: "space-between" }}>
+                  <div className="info-item" style={{ flex: 1, paddingRight: "16px" }}>
+                    <span className="label">Invoice No.</span>
+                    <span className="value handwritten" style={{ fontWeight: 400, fontSize: "17px" }}>{invoiceNo}</span>
+                  </div>
 
-            <div className="info-item full">
-              <span className="label">Party GSTIN No</span>
-              <span className="value handwritten" style={{ fontWeight: 800, fontSize: "16px" }}>{partyGstinNo}</span>
-              <span className="label inline-state">State</span>
-              <span className="value small handwritten">{partyState}</span>
-              <span className="label inline-state">State Code</span>
-              <span className="value small handwritten">{partyStateCode}</span>
-            </div>
-          </div>
+                  <div className="info-item right" style={{ flex: "0 0 200px", marginTop: 0, paddingTop: "1.4mm", paddingBottom: "1.4mm" }}>
+                    <span className="label" style={{ minWidth: "auto", marginRight: "6px" }}>Date :</span>
+                    <span className="value handwritten" style={{ fontSize: "17px" }}>{invoiceDate}</span>
+                  </div>
+                </div>
+
+                <div className="info-item full">
+                  <span className="label">NAME</span>
+                  <span className="value handwritten" style={{ fontWeight: 400, fontSize: "17px" }}>{customerName}</span>
+                </div>
+
+                <div className="info-item full">
+                  <span className="label">ADDRESS</span>
+                  <span className="value handwritten" style={{ fontWeight: 400, fontSize: "17px" }}>{address}</span>
+                </div>
+
+                <div className="info-item full">
+                  <span className="label">Party GSTIN No</span>
+                  <span className="value handwritten" style={{ fontWeight: 800, fontSize: "16px" }}>{partyGstinNo}</span>
+                  <span className="label inline-state">State</span>
+                  <span className="value small handwritten">{partyState}</span>
+                  <span className="label inline-state">State Code</span>
+                  <span className="value small handwritten">{partyStateCode}</span>
+                </div>
+              </div>
+            </>
+          )}
 
           <table className="items-table">
             <colgroup>
