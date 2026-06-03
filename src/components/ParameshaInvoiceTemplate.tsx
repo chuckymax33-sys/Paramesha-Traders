@@ -364,7 +364,7 @@ export default function ParameshaInvoiceTemplate({
           </div>
         </div>
       </div>
-
+      {/* @ts-expect-error styled-jsx adds jsx prop */}
       <style jsx global>{`
         * {
           box-sizing: border-box;
