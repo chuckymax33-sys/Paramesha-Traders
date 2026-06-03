@@ -260,6 +260,8 @@ export default function ParameshaInvoiceTemplate({
             </>
           )}
 
+          {pageIndex > 0 && <div style={{ height: "15mm" }}></div>}
+
           <table className="items-table">
             <colgroup>
               <col style={{ width: "5%" }} />
