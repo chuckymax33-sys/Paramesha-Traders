@@ -12,13 +12,13 @@ export const Route = createFileRoute("/daily-entry")({
 });
 
 const empty = {
-  vehicle: VEHICLES[0],
+  vehicle: "",
   driverName: "",
   date: new Date().toISOString().slice(0, 10),
   company: "",
   destination: "",
   billNo: "",
-  material: MATERIALS[0],
+  material: "",
   quantity: "",
   crusherRate: "",
 };
@@ -33,7 +33,7 @@ function DailyEntry() {
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.company || !form.destination || !form.billNo || !form.quantity || !form.crusherRate) {
+    if (!form.vehicle || !form.material || !form.company || !form.destination || !form.billNo || !form.quantity || !form.crusherRate) {
       toast.error("Please fill all fields");
       return;
     }
