@@ -115,7 +115,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const value: Store = {
     authed,
     login: (u, p) => {
-      const ok = u.trim().toLowerCase() === "admin" && p === "admin";
+      const ok = u.trim() === "9959315999" && p === "0126";
       if (ok) setAuthed(true);
       return ok;
     },

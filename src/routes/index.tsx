@@ -69,7 +69,7 @@ function Landing() {
             >
               Get Started
             </button>
-            <span className="text-xs text-muted-foreground">Use <code className="px-1.5 py-0.5 rounded bg-muted">admin</code> / <code className="px-1.5 py-0.5 rounded bg-muted">admin</code></span>
+            <span className="text-xs text-muted-foreground">Use <code className="px-1.5 py-0.5 rounded bg-muted">9959315999</code> / <code className="px-1.5 py-0.5 rounded bg-muted">0126</code></span>
           </div>
         </motion.div>
       </main>
@@ -95,8 +95,8 @@ function Landing() {
 }
 
 function LoginModal({ onClose, onLogin }: { onClose: () => void; onLogin: (u: string, p: string) => void }) {
-  const [username, setUsername] = useState("admin");
-  const [password, setPassword] = useState("admin");
+  const [username, setUsername] = useState("9959315999");
+  const [password, setPassword] = useState("0126");
 
   return (
     <motion.div
