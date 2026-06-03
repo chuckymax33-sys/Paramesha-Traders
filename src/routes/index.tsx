@@ -95,8 +95,8 @@ function Landing() {
 }
 
 function LoginModal({ onClose, onLogin }: { onClose: () => void; onLogin: (u: string, p: string) => void }) {
-  const [username, setUsername] = useState("9959315999");
-  const [password, setPassword] = useState("0126");
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
 
   return (
     <motion.div
@@ -137,7 +137,7 @@ function LoginModal({ onClose, onLogin }: { onClose: () => void; onLogin: (u: st
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 className="glass-input w-full rounded-2xl pl-10 pr-4 py-3 text-sm outline-none focus:ring-2 focus:ring-primary/40"
-                placeholder="admin"
+                placeholder="Phone number"
               />
             </div>
           </div>
