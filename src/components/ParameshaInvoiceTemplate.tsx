@@ -190,7 +190,7 @@ export default function ParameshaInvoiceTemplate({
       {chunks.map((chunk, pageIndex) => (
         <div 
           key={pageIndex} 
-          className={pageIndex > 0 ? "break-before" : ""}
+          className="html2pdf__page-break" 
           style={{ paddingTop: pageIndex > 0 ? '10mm' : '0' }}
         >
           <div 
@@ -440,7 +440,7 @@ export default function ParameshaInvoiceTemplate({
           margin: 0 auto;
           background: white;
           border: 4px solid #24336f;
-          padding: 6mm 6mm 12mm 6mm;
+          padding: 6mm 6mm 5mm 6mm;
           color: #111;
           position: relative;
           display: flex;
@@ -575,11 +575,6 @@ export default function ParameshaInvoiceTemplate({
           word-spacing: 3px;
           font-weight: 500;
           color: #000;
-        }
-
-        .items-table tbody td.handwritten {
-          font-size: 15px;
-          font-weight: 800;
         }
 
         .items-table {
@@ -726,7 +721,7 @@ export default function ParameshaInvoiceTemplate({
           width: 85%;
           margin: 0 auto 8px auto;
           border-bottom: 1px solid #24336f;
-          min-height: 45px;
+          min-height: 22px;
         }
 
         .seal-space {
@@ -769,8 +764,8 @@ export default function ParameshaInvoiceTemplate({
             margin: 0 !important;
             overflow: hidden !important;
           }
-          .break-before {
-            page-break-before: always !important;
+          .html2pdf__page-break {
+            page-break-after: always;
           }
           .invoice-page {
             border: none !important;
