@@ -98,8 +98,6 @@ function BillingFormat() {
         gstBillNumber: gstNo, company, address, partyGstinNo, printDate: invoiceDate,
         totalAmount: grand, rows, subtotal, gst
       });
-      }
-
       navigate({ to: "/printed-bills" });
     } catch (error: any) {
       toast.error(error.message || "Failed to save bill or generate PDF");
