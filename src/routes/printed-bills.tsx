@@ -34,7 +34,7 @@ function PrintedBills() {
             filename: `invoice-${b.gstBillNumber || b.id.substring(0, 5)}.pdf`,
             image: { type: 'jpeg' as const, quality: 0.98 },
             html2canvas: { scale: 2, useCORS: true },
-            pagebreak: { mode: 'css', before: '.html2pdf__page-break' },
+            pagebreak: { mode: 'css', before: '.break-before' },
             jsPDF: { unit: 'mm' as const, format: 'a4' as const, orientation: 'portrait' as const }
           };
           await html2pdf().set(opt).from(element as HTMLElement).save();
