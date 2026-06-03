@@ -13,6 +13,7 @@ export type Entry = {
   material: string;
   quantity: number;
   crusherRate: number;
+  driverName?: string;
 };
 
 export type PrintedBill = {
@@ -80,7 +81,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       billNo: d.bill_no,
       material: d.material,
       quantity: d.quantity,
-      crusherRate: d.crusher_rate
+      crusherRate: d.crusher_rate,
+      driverName: d.driver_name || ""
     })));
   };
 
@@ -129,7 +131,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         bill_no: e.billNo,
         material: e.material,
         quantity: e.quantity,
-        crusher_rate: e.crusherRate
+        crusher_rate: e.crusherRate,
+        driver_name: e.driverName || ""
       });
       if (error) throw error;
       await loadEntries();
@@ -143,7 +146,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         bill_no: e.billNo,
         material: e.material,
         quantity: e.quantity,
-        crusher_rate: e.crusherRate
+        crusher_rate: e.crusherRate,
+        driver_name: e.driverName || ""
       }).eq("id", id);
       if (error) throw error;
       await loadEntries();

@@ -13,6 +13,7 @@ export const Route = createFileRoute("/daily-entry")({
 
 const empty = {
   vehicle: VEHICLES[0],
+  driverName: "",
   date: new Date().toISOString().slice(0, 10),
   company: "",
   destination: "",
@@ -40,7 +41,7 @@ function DailyEntry() {
     setIsLoading(true);
     try {
       const payload: Omit<Entry, "id"> = {
-        vehicle: form.vehicle, date: form.date, company: form.company,
+        vehicle: form.vehicle, driverName: form.driverName, date: form.date, company: form.company,
         destination: form.destination,
         billNo: form.billNo, material: form.material,
         quantity: Number(form.quantity), crusherRate: Number(form.crusherRate),
@@ -86,6 +87,9 @@ function DailyEntry() {
             <datalist id="vehicles-list">
               {VEHICLES.map((v) => <option key={v} value={v} />)}
             </datalist>
+          </Field>
+          <Field label="Driver Name">
+            <input value={form.driverName} onChange={(e) => setForm({ ...form, driverName: e.target.value })} className="glass-select" placeholder="e.g. Raju" />
           </Field>
           <Field label="Date">
             <input type="date" value={form.date} onChange={(e) => setForm({ ...form, date: e.target.value })} className="glass-select" />
@@ -147,7 +151,7 @@ function DailyEntry() {
           <table className="w-full text-sm">
             <thead className="text-left text-xs uppercase tracking-wide text-muted-foreground bg-white/40">
               <tr>
-                {["Date", "Vehicle", "Company", "Destination", "Bill No", "Material", "Qty", "Rate", "Actions"].map((h) => (
+                {["Date", "Vehicle", "Driver", "Company", "Destination", "Bill No", "Material", "Qty", "Rate", "Actions"].map((h) => (
                   <th key={h} className="px-5 py-3 font-medium">{h}</th>
                 ))}
               </tr>
@@ -165,6 +169,7 @@ function DailyEntry() {
                   >
                     <td className="px-5 py-3 whitespace-nowrap">{e.date}</td>
                     <td className="px-5 py-3 whitespace-nowrap font-medium">{e.vehicle}</td>
+                    <td className="px-5 py-3">{e.driverName || "-"}</td>
                     <td className="px-5 py-3">{e.company}</td>
                     <td className="px-5 py-3">{e.destination}</td>
                     <td className="px-5 py-3">{e.billNo}</td>
@@ -195,7 +200,7 @@ function DailyEntry() {
                 ))}
               </AnimatePresence>
               {entries.length === 0 && (
-                <tr><td colSpan={9} className="px-5 py-12 text-center text-muted-foreground">No entries yet — add your first trip above.</td></tr>
+                <tr><td colSpan={10} className="px-5 py-12 text-center text-muted-foreground">No entries yet — add your first trip above.</td></tr>
               )}
             </tbody>
           </table>

@@ -9,6 +9,7 @@ CREATE TABLE IF NOT EXISTS public.daily_entries (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
     vehicle_no TEXT NOT NULL,
     date DATE NOT NULL,
+    driver_name TEXT,
     company_name TEXT NOT NULL,
     destination TEXT,
     bill_no TEXT NOT NULL,
