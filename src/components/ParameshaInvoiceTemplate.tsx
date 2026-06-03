@@ -191,7 +191,11 @@ export default function ParameshaInvoiceTemplate({
         <div 
           key={pageIndex} 
           className="invoice-page html2pdf__page-break" 
-          style={{ marginBottom: pageIndex < chunks.length - 1 ? '20px' : '0' }}
+          style={{ 
+            marginBottom: pageIndex < chunks.length - 1 ? '20px' : '0',
+            marginTop: pageIndex > 0 ? '15mm' : '0',
+            minHeight: pageIndex > 0 ? '272mm' : '287mm'
+          }}
         >
           {pageIndex === 0 && (
             <>
@@ -259,8 +263,6 @@ export default function ParameshaInvoiceTemplate({
               </div>
             </>
           )}
-
-          {pageIndex > 0 && <div style={{ height: "15mm" }}></div>}
 
           <table className="items-table">
             <colgroup>
@@ -762,7 +764,6 @@ export default function ParameshaInvoiceTemplate({
             border: none !important;
             box-shadow: inset 0 0 0 4px #24336f !important;
             width: 202mm !important;
-            min-height: 288mm !important;
             margin: 0 auto !important;
             page-break-after: always;
           }
