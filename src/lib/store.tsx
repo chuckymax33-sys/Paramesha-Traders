@@ -61,7 +61,10 @@ type Store = {
 const Ctx = createContext<Store | null>(null);
 
 export function StoreProvider({ children }: { children: ReactNode }) {
-  const [authed, setAuthed] = useState(false);
+  const [authed, setAuthed] = useState(() => {
+    if (typeof window !== "undefined") return localStorage.getItem("cf_authed") === "true";
+    return false;
+  });
   const [entries, setEntries] = useState<Entry[]>([]);
   const [bills, setBills] = useState<PrintedBill[]>([]);
 
@@ -111,6 +114,13 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     loadEntries();
     loadBills();
   }, []);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      if (authed) localStorage.setItem("cf_authed", "true");
+      else localStorage.removeItem("cf_authed");
+    }
+  }, [authed]);
 
   const value: Store = {
     authed,

@@ -69,7 +69,6 @@ function Landing() {
             >
               Get Started
             </button>
-            <span className="text-xs text-muted-foreground">Use <code className="px-1.5 py-0.5 rounded bg-muted">9959315999</code> / <code className="px-1.5 py-0.5 rounded bg-muted">0126</code></span>
           </div>
         </motion.div>
       </main>
