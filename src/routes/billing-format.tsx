@@ -16,7 +16,7 @@ export const Route = createFileRoute("/billing-format")({
 type Ctx = { company: string; month: string; year: string; vehicle: string; material: string; selectedIds?: string[] };
 
 function BillingFormat() {
-  const { entries, addBill, uploadInvoicePDF } = useStore();
+  const { entries, addBill } = useStore();
   const navigate = useNavigate();
   const [ctx, setCtx] = useState<Ctx>({ company: "all", month: "all", year: String(new Date().getFullYear()), vehicle: "all", material: "all" });
   const [company, setCompany] = useState<string>("");
