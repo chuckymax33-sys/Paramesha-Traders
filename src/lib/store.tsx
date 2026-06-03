@@ -69,7 +69,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const [bills, setBills] = useState<PrintedBill[]>([]);
 
   const loadEntries = async () => {
-    const { data, error } = await supabase.from("daily_entries").select("*").order("created_at", { ascending: false });
+    const { data, error } = await supabase.from("daily_entries").select("*").order("created_at", { ascending: false }).limit(10);
     if (error) {
       console.error(error);
       toast.error("Failed to load entries");
