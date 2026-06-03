@@ -120,10 +120,10 @@ function BillingFormat() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <label className="block sm:col-span-2">
                 <span className="text-xs font-medium text-muted-foreground mb-1.5 block">Company Name</span>
-                <select value={company} onChange={(e) => setCompany(e.target.value)} className="glass-select">
-                  <option value="">Select company…</option>
-                  {companies.map((c) => <option key={c}>{c}</option>)}
-                </select>
+                <input list="companies-list" value={company} onChange={(e) => setCompany(e.target.value)} className="glass-select" placeholder="Enter full company name" />
+                <datalist id="companies-list">
+                  {companies.map((c) => <option key={c} value={c} />)}
+                </datalist>
               </label>
               <label className="block sm:col-span-2">
                 <span className="text-xs font-medium text-muted-foreground mb-1.5 block">Address</span>
@@ -139,7 +139,7 @@ function BillingFormat() {
               </label>
               <label className="block sm:col-span-2">
                 <span className="text-xs font-medium text-muted-foreground mb-1.5 block">Party GSTIN No</span>
-                <input value={partyGstinNo} onChange={(e) => setPartyGstinNo(e.target.value)} className="glass-select" placeholder="GSTIN" />
+                <input value={partyGstinNo} onChange={(e) => setPartyGstinNo(e.target.value.toUpperCase())} className="glass-select uppercase" placeholder="GSTIN" />
               </label>
             </div>
           </motion.section>

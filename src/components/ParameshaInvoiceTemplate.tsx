@@ -215,28 +215,28 @@ export default function ParameshaInvoiceTemplate({
           <div style={{ display: "flex", justifyContent: "space-between" }}>
             <div className="info-item" style={{ flex: 1, paddingRight: "16px" }}>
               <span className="label">Invoice No.</span>
-              <span className="value handwritten">{invoiceNo}</span>
+              <span className="value handwritten" style={{ fontWeight: 400, fontSize: "17px" }}>{invoiceNo}</span>
             </div>
 
             <div className="info-item right" style={{ flex: "0 0 200px", marginTop: 0, paddingTop: "1.4mm", paddingBottom: "1.4mm" }}>
               <span className="label" style={{ minWidth: "auto", marginRight: "6px" }}>Date :</span>
-              <span className="value handwritten">{invoiceDate}</span>
+              <span className="value handwritten" style={{ fontSize: "17px" }}>{invoiceDate}</span>
             </div>
           </div>
 
           <div className="info-item full">
             <span className="label">NAME</span>
-            <span className="value handwritten">{customerName}</span>
+            <span className="value handwritten" style={{ fontWeight: 400, fontSize: "17px" }}>{customerName}</span>
           </div>
 
           <div className="info-item full">
             <span className="label">ADDRESS</span>
-            <span className="value handwritten">{address}</span>
+            <span className="value handwritten" style={{ fontWeight: 400, fontSize: "17px" }}>{address}</span>
           </div>
 
           <div className="info-item full">
             <span className="label">Party GSTIN No</span>
-            <span className="value handwritten">{partyGstinNo}</span>
+            <span className="value handwritten" style={{ fontWeight: 800, fontSize: "16px" }}>{partyGstinNo}</span>
             <span className="label inline-state">State</span>
             <span className="value small handwritten">{partyState}</span>
             <span className="label inline-state">State Code</span>
@@ -297,21 +297,6 @@ export default function ParameshaInvoiceTemplate({
                 <td className="right handwritten">{formatINR(item.amount)}</td>
               </tr>
             ))}
-
-            {enrichedItems.length < 10 &&
-              Array.from({ length: 10 - enrichedItems.length }).map((_, i) => (
-                <tr key={`empty-${i}`}>
-                  <td>&nbsp;</td>
-                  <td />
-                  <td />
-                  <td />
-                  <td />
-                  <td />
-                  <td />
-                  <td />
-                  <td />
-                </tr>
-              ))}
           </tbody>
         </table>
 
@@ -526,6 +511,7 @@ export default function ParameshaInvoiceTemplate({
         .label {
           font-weight: 700;
           color: #24336f;
+          font-size: 14px;
           min-width: 95px;
         }
 
@@ -549,6 +535,8 @@ export default function ParameshaInvoiceTemplate({
         .handwritten {
           letter-spacing: 1px;
           word-spacing: 3px;
+          font-weight: 500;
+          color: #000;
         }
 
         .items-table {
