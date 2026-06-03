@@ -66,7 +66,7 @@ function DailyEntry() {
 
   const startEdit = (e: Entry) => {
     setEditingId(e.id);
-    setForm({ ...e, quantity: String(e.quantity), crusherRate: String(e.crusherRate) });
+    setForm({ ...e, driverName: e.driverName || "", quantity: String(e.quantity), crusherRate: String(e.crusherRate) });
   };
 
   return (
