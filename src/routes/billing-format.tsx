@@ -94,34 +94,10 @@ function BillingFormat() {
     if (!gstNo) { toast.error("Please enter GST number"); return; }
     setIsPrinting(true);
     try {
-      // 1. Generate PDF blob
-      const element = document.querySelector(".invoice-page");
-      let pdfBlob: Blob | null = null;
-      if (element) {
-        const html2pdf = (await import("html2pdf.js")).default;
-        const opt = {
-          margin: 5,
-          filename: 'invoice.pdf',
-          image: { type: 'jpeg' as const, quality: 0.98 },
-          html2canvas: { 
-            scale: 2, 
-            useCORS: true
-          },
-          jsPDF: { unit: 'mm' as const, format: 'a4' as const, orientation: 'portrait' as const }
-        };
-        // Generate blob instead of saving to disk
-        pdfBlob = await html2pdf().set(opt).from(element as HTMLElement).output('blob');
-      }
-
-      // 2. Save bill metadata to DB
-      const b = await addBill({
+      await addBill({
         gstBillNumber: gstNo, company, address, partyGstinNo, printDate: invoiceDate,
         totalAmount: grand, rows, subtotal, gst
       });
-
-      // 3. Upload PDF blob to Supabase bucket if generated successfully
-      if (pdfBlob) {
-        await uploadInvoicePDF(b.id, pdfBlob);
       }
 
       navigate({ to: "/printed-bills" });

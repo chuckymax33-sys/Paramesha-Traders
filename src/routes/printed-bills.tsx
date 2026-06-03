@@ -6,7 +6,7 @@ import { AppLayout } from "@/components/AppLayout";
 import { useStore, type PrintedBill } from "@/lib/store";
 import ParameshaInvoiceTemplate from "@/components/ParameshaInvoiceTemplate";
 import { toast } from "sonner";
-import html2pdf from "html2pdf.js";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/printed-bills")({
   head: () => ({ meta: [{ title: "Printed Bills — CrusherFlow" }] }),
@@ -21,9 +21,33 @@ function PrintedBills() {
   const [viewing, setViewing] = useState<PrintedBill | null>(null);
   const [isPrinting, setIsPrinting] = useState(false);
 
-  const downloadPDF = (b: PrintedBill) => {
-    const { data } = supabase.storage.from("invoices").getPublicUrl(`${b.id}.pdf`);
-    window.open(data.publicUrl, "_blank");
+  const downloadPDF = async (b: PrintedBill) => {
+    setIsPrinting(true);
+    setViewing(b);
+    // Give it a moment to render in the DOM before capturing
+    setTimeout(async () => {
+      try {
+        const element = document.querySelector(".invoice-page");
+        if (element) {
+          const html2pdf = (await import("html2pdf.js")).default;
+          const opt = {
+            margin: 5,
+            filename: `invoice-${b.gstBillNumber || b.id.substring(0, 5)}.pdf`,
+            image: { type: 'jpeg' as const, quality: 0.98 },
+            html2canvas: { scale: 2, useCORS: true },
+            jsPDF: { unit: 'mm' as const, format: 'a4' as const, orientation: 'portrait' as const }
+          };
+          await html2pdf().set(opt).from(element as HTMLElement).save();
+          toast.success("PDF downloaded successfully!");
+        }
+      } catch (err) {
+        console.error(err);
+        toast.error("Failed to generate PDF");
+      } finally {
+        setViewing(null);
+        setIsPrinting(false);
+      }
+    }, 400);
   };
 
   const filtered = useMemo(() => bills.filter((b) =>
