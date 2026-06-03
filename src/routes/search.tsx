@@ -1,0 +1,127 @@
+import { createFileRoute } from "@tanstack/react-router";
+import { useMemo, useState } from "react";
+import { motion } from "framer-motion";
+import { Search as SearchIcon, X, ChevronLeft, ChevronRight } from "lucide-react";
+import { AppLayout } from "@/components/AppLayout";
+import { COMPANIES, VEHICLES, useStore } from "@/lib/store";
+
+export const Route = createFileRoute("/search")({
+  head: () => ({ meta: [{ title: "Search — CrusherFlow" }] }),
+  component: SearchPage,
+});
+
+const PAGE = 6;
+
+function SearchPage() {
+  const { entries } = useStore();
+  const [vehicle, setVehicle] = useState("all");
+  const [company, setCompany] = useState("");
+  const [date, setDate] = useState("");
+  const [page, setPage] = useState(0);
+  const [filters, setFilters] = useState<{ vehicle: string; company: string; date: string } | null>(null);
+
+  const companies = useMemo(() => Array.from(new Set([...COMPANIES, ...entries.map(e => e.company)])), [entries]);
+
+  const results = useMemo(() => {
+    if (!filters) return [];
+    return entries.filter((e) => {
+      if (filters.vehicle !== "all" && e.vehicle !== filters.vehicle) return false;
+      if (filters.company && !e.company.toLowerCase().includes(filters.company.toLowerCase())) return false;
+      if (filters.date && e.date !== filters.date) return false;
+      return true;
+    });
+  }, [entries, filters]);
+
+  const pages = Math.max(1, Math.ceil(results.length / PAGE));
+  const paged = results.slice(page * PAGE, (page + 1) * PAGE);
+
+  const clear = () => { setVehicle("all"); setCompany(""); setDate(""); setPage(0); setFilters(null); };
+  
+  const handleSearch = () => {
+    setFilters({ vehicle, company, date });
+    setPage(0);
+  };
+
+  return (
+    <AppLayout title="Search" subtitle="Find any trip in seconds.">
+      <motion.section initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="glass-card p-6 sm:p-8 mb-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <Field label="Vehicle Number">
+            <select value={vehicle} onChange={(e) => { setVehicle(e.target.value); setPage(0); }} className="glass-select">
+              <option value="all">All vehicles</option>
+              {VEHICLES.map((v) => <option key={v}>{v}</option>)}
+            </select>
+          </Field>
+          <Field label="Company Name">
+            <input list="companies" value={company} onChange={(e) => { setCompany(e.target.value); setPage(0); }} className="glass-select" placeholder="Search company…" />
+            <datalist id="companies">{companies.map((c) => <option key={c} value={c} />)}</datalist>
+          </Field>
+          <Field label="Date">
+            <input type="date" value={date} onChange={(e) => { setDate(e.target.value); setPage(0); }} className="glass-select" />
+          </Field>
+          <div className="flex items-end gap-2">
+            <button onClick={handleSearch} className="flex-1 rounded-2xl bg-primary text-primary-foreground px-4 py-3 text-sm font-semibold inline-flex items-center justify-center gap-2 shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all">
+              <SearchIcon className="h-4 w-4" /> Search
+            </button>
+            <button onClick={clear} className="glass-button rounded-2xl px-4 py-3 text-sm font-semibold inline-flex items-center gap-2">
+              <X className="h-4 w-4" /> Clear
+            </button>
+          </div>
+        </div>
+      </motion.section>
+
+      <section className="glass-card overflow-hidden">
+        <div className="px-6 py-4 border-b border-white/40 flex items-center justify-between">
+          <h2 className="font-semibold">Results <span className="text-xs text-muted-foreground">({results.length})</span></h2>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead className="text-left text-xs uppercase tracking-wide text-muted-foreground bg-white/40">
+              <tr>{["Date","Vehicle","Company","Bill No","Material","Qty","Rate"].map(h => <th key={h} className="px-5 py-3 font-medium">{h}</th>)}</tr>
+            </thead>
+            <tbody>
+              {paged.map((e) => (
+                <tr key={e.id} className="border-t border-white/40 hover:bg-white/40">
+                  <td className="px-5 py-3 whitespace-nowrap">{e.date}</td>
+                  <td className="px-5 py-3 font-medium">{e.vehicle}</td>
+                  <td className="px-5 py-3">{e.company}</td>
+                  <td className="px-5 py-3">{e.billNo}</td>
+                  <td className="px-5 py-3">{e.material}</td>
+                  <td className="px-5 py-3">{e.quantity}</td>
+                  <td className="px-5 py-3">₹{e.crusherRate}</td>
+                </tr>
+              ))}
+              {paged.length === 0 && (
+                <tr>
+                  <td colSpan={7} className="px-5 py-12 text-center text-muted-foreground">
+                    {!filters ? "Click search to find trips." : "No results match your filters."}
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+        <div className="px-6 py-4 border-t border-white/40 flex items-center justify-between text-sm">
+          <span className="text-muted-foreground">Page {page + 1} of {pages}</span>
+          <div className="flex gap-2">
+            <button disabled={page === 0} onClick={() => setPage(p => p - 1)} className="glass-button rounded-xl h-9 w-9 grid place-items-center disabled:opacity-40">
+              <ChevronLeft className="h-4 w-4" />
+            </button>
+            <button disabled={page >= pages - 1} onClick={() => setPage(p => p + 1)} className="glass-button rounded-xl h-9 w-9 grid place-items-center disabled:opacity-40">
+              <ChevronRight className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
+      </section>
+    </AppLayout>
+  );
+}
+
+function Field({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <label className="block">
+      <span className="text-xs font-medium text-muted-foreground mb-1.5 block">{label}</span>
+      {children}
+    </label>
+  );
+}
