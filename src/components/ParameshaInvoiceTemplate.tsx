@@ -178,192 +178,216 @@ export default function ParameshaInvoiceTemplate({
     window.print();
   };
 
+  const ITEMS_PER_PAGE = 15;
+  const chunks = [];
+  for (let i = 0; i < enrichedItems.length; i += ITEMS_PER_PAGE) {
+    chunks.push(enrichedItems.slice(i, i + ITEMS_PER_PAGE));
+  }
+  if (chunks.length === 0) chunks.push([]);
+
   return (
-    <div className="invoice-shell">
-      <div className="invoice-page" ref={printRef}>
-        <div className="top-row">
-          <div className="tax-title">TAX INVOICE</div>
-          <div className="cells">
-            <div>Cell : {cell1}</div>
-            <div>{cell2}</div>
-          </div>
-        </div>
-
-        <div className="company-block">
-          <div className="company-name">PARAMESHA TRADERS</div>
-          <div className="subtitle">BUILDING MATERIAL SUPPLIERS</div>
-          <div className="subtitle">SAND, METAL, ROBO SAND, BRICKS ETC</div>
-          <div className="address-line">
-            H.No. 3-9-545/1, Plot No. 17, Sri Rama Hills, Mansoorabad, L.B. Nagar,
-            Hyd - 500 068.
-          </div>
-        </div>
-
-        <div className="state-row">
-          <div>
-            <strong>State :</strong> TELANGANA
-          </div>
-          <div>
-            <strong>State Code :</strong> 36
-          </div>
-          <div>
-            <strong>GSTIN :</strong> 36AJZPG2941A1Z8
-          </div>
-        </div>
-
-        <div className="info-grid">
-          <div style={{ display: "flex", justifyContent: "space-between" }}>
-            <div className="info-item" style={{ flex: 1, paddingRight: "16px" }}>
-              <span className="label">Invoice No.</span>
-              <span className="value handwritten" style={{ fontWeight: 400, fontSize: "17px" }}>{invoiceNo}</span>
-            </div>
-
-            <div className="info-item right" style={{ flex: "0 0 200px", marginTop: 0, paddingTop: "1.4mm", paddingBottom: "1.4mm" }}>
-              <span className="label" style={{ minWidth: "auto", marginRight: "6px" }}>Date :</span>
-              <span className="value handwritten" style={{ fontSize: "17px" }}>{invoiceDate}</span>
+    <div className="invoice-shell" ref={printRef}>
+      {chunks.map((chunk, pageIndex) => (
+        <div 
+          key={pageIndex} 
+          className="invoice-page html2pdf__page-break" 
+          style={{ marginBottom: pageIndex < chunks.length - 1 ? '20px' : '0' }}
+        >
+          <div className="top-row">
+            <div className="tax-title">TAX INVOICE {chunks.length > 1 ? `(Page ${pageIndex + 1} of ${chunks.length})` : ''}</div>
+            <div className="cells">
+              <div>Cell : {cell1}</div>
+              <div>{cell2}</div>
             </div>
           </div>
 
-          <div className="info-item full">
-            <span className="label">NAME</span>
-            <span className="value handwritten" style={{ fontWeight: 400, fontSize: "17px" }}>{customerName}</span>
+          <div className="company-block">
+            <div className="company-name">PARAMESHA TRADERS</div>
+            <div className="subtitle">BUILDING MATERIAL SUPPLIERS</div>
+            <div className="subtitle">SAND, METAL, ROBO SAND, BRICKS ETC</div>
+            <div className="address-line">
+              H.No. 3-9-545/1, Plot No. 17, Sri Rama Hills, Mansoorabad, L.B. Nagar,
+              Hyd - 500 068.
+            </div>
           </div>
 
-          <div className="info-item full">
-            <span className="label">ADDRESS</span>
-            <span className="value handwritten" style={{ fontWeight: 400, fontSize: "17px" }}>{address}</span>
+          <div className="state-row">
+            <div>
+              <strong>State :</strong> TELANGANA
+            </div>
+            <div>
+              <strong>State Code :</strong> 36
+            </div>
+            <div>
+              <strong>GSTIN :</strong> 36AJZPG2941A1Z8
+            </div>
           </div>
 
-          <div className="info-item full">
-            <span className="label">Party GSTIN No</span>
-            <span className="value handwritten" style={{ fontWeight: 800, fontSize: "16px" }}>{partyGstinNo}</span>
-            <span className="label inline-state">State</span>
-            <span className="value small handwritten">{partyState}</span>
-            <span className="label inline-state">State Code</span>
-            <span className="value small handwritten">{partyStateCode}</span>
+          <div className="info-grid">
+            <div style={{ display: "flex", justifyContent: "space-between" }}>
+              <div className="info-item" style={{ flex: 1, paddingRight: "16px" }}>
+                <span className="label">Invoice No.</span>
+                <span className="value handwritten" style={{ fontWeight: 400, fontSize: "17px" }}>{invoiceNo}</span>
+              </div>
+
+              <div className="info-item right" style={{ flex: "0 0 200px", marginTop: 0, paddingTop: "1.4mm", paddingBottom: "1.4mm" }}>
+                <span className="label" style={{ minWidth: "auto", marginRight: "6px" }}>Date :</span>
+                <span className="value handwritten" style={{ fontSize: "17px" }}>{invoiceDate}</span>
+              </div>
+            </div>
+
+            <div className="info-item full">
+              <span className="label">NAME</span>
+              <span className="value handwritten" style={{ fontWeight: 400, fontSize: "17px" }}>{customerName}</span>
+            </div>
+
+            <div className="info-item full">
+              <span className="label">ADDRESS</span>
+              <span className="value handwritten" style={{ fontWeight: 400, fontSize: "17px" }}>{address}</span>
+            </div>
+
+            <div className="info-item full">
+              <span className="label">Party GSTIN No</span>
+              <span className="value handwritten" style={{ fontWeight: 800, fontSize: "16px" }}>{partyGstinNo}</span>
+              <span className="label inline-state">State</span>
+              <span className="value small handwritten">{partyState}</span>
+              <span className="label inline-state">State Code</span>
+              <span className="value small handwritten">{partyStateCode}</span>
+            </div>
           </div>
-        </div>
 
-        <table className="items-table">
-          <colgroup>
-            <col style={{ width: "5%" }} />
-            <col style={{ width: "14%" }} />
-            <col style={{ width: "11%" }} />
-            <col style={{ width: "16%" }} />
-            <col style={{ width: "12%" }} />
-            <col style={{ width: "7%" }} />
-            <col style={{ width: "10%" }} />
-            <col style={{ width: "10%" }} />
-            <col style={{ width: "15%" }} />
-          </colgroup>
-          <thead>
-            <tr>
-              <th>S.No</th>
-              <th>DATE</th>
-              <th>TRIP SHEET No.</th>
-              <th>VEHICLE NO.</th>
-              <th>MATERIAL</th>
-              <th>HSN CODE</th>
-              <th>QTY</th>
-              <th>RATE</th>
-              <th>AMOUNT</th>
-            </tr>
-          </thead>
-
-          <tbody>
-            {enrichedItems.map((item, index) => (
-              <tr key={`${item.tripSheetNo}-${index}`}>
-                <td className="center">{index + 1}.</td>
-                <td className="handwritten">{item.date}</td>
-                <td className="handwritten">{item.tripSheetNo}</td>
-                <td className="handwritten">{item.vehicleNo}</td>
-                <td className="handwritten">{item.material}</td>
-                <td className="center handwritten">{item.hsnCode ?? ""}</td>
-                <td className="right handwritten">{item.qty.toFixed(3)}</td>
-                <td className="right handwritten">
-                  {onChangeItems ? (
-                    <input
-                      className="rate-input"
-                      type="number"
-                      value={item.rate}
-                      onChange={(e) =>
-                        updateRate(index, Number(e.target.value || 0))
-                      }
-                    />
-                  ) : (
-                    formatINR(item.rate)
-                  )}
-                </td>
-                <td className="right handwritten">{formatINR(item.amount)}</td>
+          <table className="items-table">
+            <colgroup>
+              <col style={{ width: "5%" }} />
+              <col style={{ width: "14%" }} />
+              <col style={{ width: "11%" }} />
+              <col style={{ width: "16%" }} />
+              <col style={{ width: "12%" }} />
+              <col style={{ width: "7%" }} />
+              <col style={{ width: "10%" }} />
+              <col style={{ width: "10%" }} />
+              <col style={{ width: "15%" }} />
+            </colgroup>
+            <thead>
+              <tr>
+                <th>S.No</th>
+                <th>DATE</th>
+                <th>TRIP SHEET No.</th>
+                <th>VEHICLE NO.</th>
+                <th>MATERIAL</th>
+                <th>HSN CODE</th>
+                <th>QTY</th>
+                <th>RATE</th>
+                <th>AMOUNT</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
 
-        <div className="lower-section">
-          <div className="left-side">
-            <div className="words-box">
-              <div className="words-title">TOTAL VALUE IN WORDS :</div>
-              <div className="words-text handwritten">{totalWords}</div>
-            </div>
+            <tbody>
+              {chunk.map((item, localIndex) => {
+                const globalIndex = pageIndex * ITEMS_PER_PAGE + localIndex;
+                return (
+                  <tr key={`${item.tripSheetNo}-${globalIndex}`}>
+                    <td className="center">{globalIndex + 1}.</td>
+                    <td className="handwritten">{item.date}</td>
+                    <td className="handwritten">{item.tripSheetNo}</td>
+                    <td className="handwritten">{item.vehicleNo}</td>
+                    <td className="handwritten">{item.material}</td>
+                    <td className="center handwritten">{item.hsnCode ?? ""}</td>
+                    <td className="right handwritten">{item.qty.toFixed(3)}</td>
+                    <td className="right handwritten">
+                      {onChangeItems ? (
+                        <input
+                          className="rate-input"
+                          type="number"
+                          value={item.rate}
+                          onChange={(e) =>
+                            updateRate(globalIndex, Number(e.target.value || 0))
+                          }
+                        />
+                      ) : (
+                        formatINR(item.rate)
+                      )}
+                    </td>
+                    <td className="right handwritten">{formatINR(item.amount)}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
 
-            <div className="bank-box">
-              <div>
-                <span className="bank-label">Bank Name</span> : {bankName}
-              </div>
-              <div>
-                <span className="bank-label">Branch</span> : {branch}
-              </div>
-              <div>
-                <span className="bank-label">A/c. No.</span> : {accountNo}
-              </div>
-              <div>
-                <span className="bank-label">IFSC Code</span> : {ifscCode}
-              </div>
-            </div>
-          </div>
+          {pageIndex === chunks.length - 1 ? (
+            <>
+              <div className="lower-section">
+                <div className="left-side">
+                  <div className="words-box">
+                    <div className="words-title">TOTAL VALUE IN WORDS :</div>
+                    <div className="words-text handwritten">{totalWords}</div>
+                  </div>
 
-          <div className="totals-box">
-            <div className="total-row">
-              <span>SUB. TOTAL</span>
-              <span className="handwritten">{formatINR(subtotal)}</span>
+                  <div className="bank-box">
+                    <div>
+                      <span className="bank-label">Bank Name</span> : {bankName}
+                    </div>
+                    <div>
+                      <span className="bank-label">Branch</span> : {branch}
+                    </div>
+                    <div>
+                      <span className="bank-label">A/c. No.</span> : {accountNo}
+                    </div>
+                    <div>
+                      <span className="bank-label">IFSC Code</span> : {ifscCode}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="totals-box">
+                  <div className="total-row">
+                    <span>SUB. TOTAL</span>
+                    <span className="handwritten">{formatINR(subtotal)}</span>
+                  </div>
+                  <div className="total-row">
+                    <span>CGST : 2.5 %</span>
+                    <span className="handwritten">{formatINR(cgst)}</span>
+                  </div>
+                  <div className="total-row">
+                    <span>SGST : 2.5 %</span>
+                    <span className="handwritten">{formatINR(sgst)}</span>
+                  </div>
+                  <div className="total-row">
+                    <span>IGST : %</span>
+                    <span className="handwritten">{formatINR(igst)}</span>
+                  </div>
+                  <div className="total-row grand">
+                    <span>GTOTAL</span>
+                    <span className="handwritten">{formatINR(grandTotal)}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="footer">
+                <div className="customer-sign">
+                  <div className="sign-line handwritten" />
+                  <div>Customer's Signature</div>
+                </div>
+
+                <div className="seal-space">
+                  <div className="seal-circle">SEAL</div>
+                </div>
+
+                <div className="auth-sign">
+                  <div>For <strong>PARAMESHA TRADERS</strong></div>
+                  <div className="sign-line handwritten" />
+                  <div>Authorised Signatory</div>
+                </div>
+              </div>
+            </>
+          ) : (
+            <div style={{ flex: 1, display: 'flex', alignItems: 'flex-end', justifyContent: 'center', paddingBottom: '20px', fontStyle: 'italic', color: '#666' }}>
+              Continued on next page...
             </div>
-            <div className="total-row">
-              <span>CGST : 2.5 %</span>
-              <span className="handwritten">{formatINR(cgst)}</span>
-            </div>
-            <div className="total-row">
-              <span>SGST : 2.5 %</span>
-              <span className="handwritten">{formatINR(sgst)}</span>
-            </div>
-            <div className="total-row">
-              <span>IGST : %</span>
-              <span className="handwritten">{formatINR(igst)}</span>
-            </div>
-            <div className="total-row grand">
-              <span>GTOTAL</span>
-              <span className="handwritten">{formatINR(grandTotal)}</span>
-            </div>
-          </div>
+          )}
         </div>
-
-        <div className="footer">
-          <div className="customer-sign">
-            <div className="sign-line handwritten" />
-            <div>Customer's Signature</div>
-          </div>
-
-          <div className="seal-space">
-            <div className="seal-circle">SEAL</div>
-          </div>
-
-          <div className="auth-sign">
-            <div>For <strong>PARAMESHA TRADERS</strong></div>
-            <div className="sign-line handwritten" />
-            <div>Authorised Signatory</div>
-          </div>
-        </div>
-      </div>
+      ))}
       {/* @ts-expect-error styled-jsx adds jsx prop */}
       <style jsx global>{`
         * {
@@ -714,8 +738,7 @@ export default function ParameshaInvoiceTemplate({
             margin: 0;
           }
           body, html {
-            height: 297mm !important;
-            overflow: hidden !important;
+            /* removed height limit to allow multi-page print */
           }
           body {
             -webkit-print-color-adjust: exact;
@@ -733,13 +756,9 @@ export default function ParameshaInvoiceTemplate({
             border: none !important;
             box-shadow: inset 0 0 0 4px #24336f !important;
             width: 202mm !important;
-            height: 288mm !important;
             min-height: 288mm !important;
-            max-height: 288mm !important;
             margin: 0 auto !important;
-            overflow: hidden !important;
-            page-break-after: avoid;
-            page-break-inside: avoid;
+            page-break-after: always;
           }
         }
       `}</style>
