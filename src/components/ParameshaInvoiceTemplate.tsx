@@ -399,8 +399,8 @@ export default function ParameshaInvoiceTemplate({
         }
 
         .invoice-page {
-          width: 210mm;
-          min-height: 297mm;
+          width: 200mm;
+          min-height: 287mm;
           margin: 0 auto;
           background: white;
           border: 4px solid #24336f;
@@ -522,9 +522,11 @@ export default function ParameshaInvoiceTemplate({
 
         .value {
           flex: 1;
+          display: flex;
+          align-items: flex-end;
           border-bottom: 1px solid #24336f;
-          min-height: 18px;
-          padding: 0 4px;
+          min-height: 20px;
+          padding: 0 4px 2px 4px;
         }
 
         .value.small {
@@ -728,13 +730,13 @@ export default function ParameshaInvoiceTemplate({
             overflow: hidden !important;
           }
           .invoice-page {
-            border: 4px solid #24336f !important;
+            border: none !important;
+            box-shadow: inset 0 0 0 4px #24336f !important;
             width: 202mm !important;
             height: 288mm !important;
             min-height: 288mm !important;
             max-height: 288mm !important;
             margin: 0 auto !important;
-            box-shadow: none !important;
             overflow: hidden !important;
             page-break-after: avoid;
             page-break-inside: avoid;

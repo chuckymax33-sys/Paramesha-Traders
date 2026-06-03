@@ -13,20 +13,17 @@ export const Route = createFileRoute("/printed-bills")({
   component: PrintedBills,
 });
 
+import { supabase } from "@/lib/supabase";
+
 function PrintedBills() {
   const { bills, deleteBill } = useStore();
   const [q, setQ] = useState("");
   const [viewing, setViewing] = useState<PrintedBill | null>(null);
   const [isPrinting, setIsPrinting] = useState(false);
 
-  const generatePDF = (b: PrintedBill) => {
-    setIsPrinting(true);
-    setViewing(b);
-    
-    setTimeout(() => {
-      window.print();
-      setIsPrinting(false);
-    }, 500);
+  const downloadPDF = (b: PrintedBill) => {
+    const { data } = supabase.storage.from("invoices").getPublicUrl(`${b.id}.pdf`);
+    window.open(data.publicUrl, "_blank");
   };
 
   const filtered = useMemo(() => bills.filter((b) =>
@@ -80,7 +77,7 @@ function PrintedBills() {
                 <button onClick={() => setViewing(b)} className="glass-button rounded-xl px-3 py-2 text-xs font-semibold inline-flex items-center gap-1.5">
                   <Eye className="h-3.5 w-3.5" /> View
                 </button>
-                <button disabled={isPrinting} onClick={() => generatePDF(b)} className="glass-button rounded-xl px-3 py-2 text-xs font-semibold inline-flex items-center gap-1.5 disabled:opacity-50">
+                <button disabled={isPrinting} onClick={() => downloadPDF(b)} className="glass-button rounded-xl px-3 py-2 text-xs font-semibold inline-flex items-center gap-1.5 disabled:opacity-50">
                   <Download className="h-3.5 w-3.5" /> PDF
                 </button>
                 <button disabled={isPrinting} onClick={() => {

@@ -16,7 +16,7 @@ export const Route = createFileRoute("/billing-format")({
 type Ctx = { company: string; month: string; year: string; vehicle: string; material: string; selectedIds?: string[] };
 
 function BillingFormat() {
-  const { entries, addBill } = useStore();
+  const { entries, addBill, uploadInvoicePDF } = useStore();
   const navigate = useNavigate();
   const [ctx, setCtx] = useState<Ctx>({ company: "all", month: "all", year: String(new Date().getFullYear()), vehicle: "all", material: "all" });
   const [company, setCompany] = useState<string>("");
@@ -89,20 +89,44 @@ function BillingFormat() {
   const gst = subtotal * 0.05; // 2.5% CGST + 2.5% SGST
   const grand = subtotal + gst;
 
-  const savePrint = async () => {
-    if (!company || rows.length === 0) { toast.error("Add billing details first"); return; }
-    
+  const handleSave = async () => {
+    if (!company) { toast.error("Please enter a company name"); return; }
+    if (!gstNo) { toast.error("Please enter GST number"); return; }
     setIsPrinting(true);
     try {
-      await addBill({
+      // 1. Generate PDF blob
+      const element = document.querySelector(".invoice-page");
+      let pdfBlob: Blob | null = null;
+      if (element) {
+        const html2pdf = (await import("html2pdf.js")).default;
+        const opt = {
+          margin: 5,
+          filename: 'invoice.pdf',
+          image: { type: 'jpeg', quality: 0.98 },
+          html2canvas: { 
+            scale: 2, 
+            useCORS: true
+          },
+          jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        };
+        // Generate blob instead of saving to disk
+        pdfBlob = await html2pdf().set(opt).from(element).output('blob');
+      }
+
+      // 2. Save bill metadata to DB
+      const b = await addBill({
         gstBillNumber: gstNo, company, address, partyGstinNo, printDate: invoiceDate,
-        totalAmount: grand, rows, subtotal, gst,
+        totalAmount: grand, rows, subtotal, gst
       });
-      toast.success("Bill saved to Printed Bills");
+
+      // 3. Upload PDF blob to Supabase bucket if generated successfully
+      if (pdfBlob) {
+        await uploadInvoicePDF(b.id, pdfBlob);
+      }
+
       navigate({ to: "/printed-bills" });
-    } catch (err: any) {
-      console.error(err);
-      toast.error(err.message || "Failed to generate bill");
+    } catch (error: any) {
+      toast.error(error.message || "Failed to save bill or generate PDF");
     } finally {
       setIsPrinting(false);
     }
@@ -180,7 +204,7 @@ function BillingFormat() {
           </section>
 
           <div className="flex flex-wrap gap-3">
-            <button disabled={isPrinting} onClick={savePrint} className="rounded-2xl bg-primary text-primary-foreground px-6 py-3 text-sm font-semibold shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all inline-flex items-center gap-2 disabled:opacity-50">
+            <button disabled={isPrinting} onClick={handleSave} className="rounded-2xl bg-primary text-primary-foreground px-6 py-3 text-sm font-semibold shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all inline-flex items-center gap-2 disabled:opacity-50">
               <FileText className="h-4 w-4" /> {isPrinting ? "Saving..." : "Save to Printed Bills"}
             </button>
           </div>

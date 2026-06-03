@@ -55,6 +55,7 @@ type Store = {
   deleteBill: (id: string) => Promise<void>;
   loadEntries: () => Promise<void>;
   loadBills: () => Promise<void>;
+  uploadInvoicePDF: (id: string, blob: Blob) => Promise<void>;
 };
 
 const Ctx = createContext<Store | null>(null);
@@ -191,6 +192,13 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       if (error) throw error;
       await loadBills();
     },
+    uploadInvoicePDF: async (id, blob) => {
+      const { error } = await supabase.storage.from("invoices").upload(`${id}.pdf`, blob, {
+        upsert: true,
+        contentType: "application/pdf"
+      });
+      if (error) throw error;
+    }
   };
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
