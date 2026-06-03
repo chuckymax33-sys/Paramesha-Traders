@@ -190,14 +190,17 @@ export default function ParameshaInvoiceTemplate({
       {chunks.map((chunk, pageIndex) => (
         <div 
           key={pageIndex} 
-          className="invoice-page html2pdf__page-break" 
-          style={{ 
-            marginBottom: pageIndex < chunks.length - 1 ? '20px' : '0',
-            marginTop: pageIndex > 0 ? '15mm' : '0',
-            minHeight: pageIndex > 0 ? '272mm' : '287mm'
-          }}
+          className="html2pdf__page-break" 
+          style={{ paddingTop: pageIndex > 0 ? '10mm' : '0' }}
         >
-          {pageIndex === 0 && (
+          <div 
+            className="invoice-page" 
+            style={{ 
+              marginBottom: pageIndex < chunks.length - 1 ? '20px' : '0',
+              minHeight: pageIndex > 0 ? '277mm' : '287mm'
+            }}
+          >
+            {pageIndex === 0 && (
             <>
               <div className="top-row">
                 <div className="tax-title">TAX INVOICE {chunks.length > 1 ? `(Page ${pageIndex + 1} of ${chunks.length})` : ''}</div>
@@ -394,6 +397,7 @@ export default function ParameshaInvoiceTemplate({
               Continued on next page...
             </div>
           )}
+        </div>
         </div>
       ))}
       {/* @ts-expect-error styled-jsx adds jsx prop */}
@@ -760,12 +764,14 @@ export default function ParameshaInvoiceTemplate({
             margin: 0 !important;
             overflow: hidden !important;
           }
+          .html2pdf__page-break {
+            page-break-after: always;
+          }
           .invoice-page {
             border: none !important;
             box-shadow: inset 0 0 0 4px #24336f !important;
             width: 202mm !important;
             margin: 0 auto !important;
-            page-break-after: always;
           }
         }
       `}</style>
