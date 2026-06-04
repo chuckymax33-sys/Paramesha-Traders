@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Pencil, Trash2, Plus, RotateCcw, Save, Truck } from "lucide-react";
 import { AppLayout } from "@/components/AppLayout";
@@ -28,6 +28,18 @@ function DailyEntry() {
   const [form, setForm] = useState(empty);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    const raw = sessionStorage.getItem("edit_entry");
+    if (raw) {
+      try {
+        const e = JSON.parse(raw);
+        setEditingId(e.id);
+        setForm({ ...e, quantity: String(e.quantity), crusherRate: String(e.crusherRate) });
+        sessionStorage.removeItem("edit_entry");
+      } catch (err) {}
+    }
+  }, []);
 
   const reset = () => { setForm(empty); setEditingId(null); };
 

@@ -1,10 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { Search as SearchIcon, X, ChevronLeft, ChevronRight } from "lucide-react";
+import { Search as SearchIcon, X, ChevronLeft, ChevronRight, Pencil, Trash2 } from "lucide-react";
 import { AppLayout } from "@/components/AppLayout";
 import { COMPANIES, VEHICLES, useStore, type Entry } from "@/lib/store";
 import { supabase } from "@/lib/supabase";
+import { toast } from "sonner";
+import { useNavigate } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/search")({
   head: () => ({ meta: [{ title: "Search — CrusherFlow" }] }),
@@ -14,7 +16,8 @@ export const Route = createFileRoute("/search")({
 const PAGE = 6;
 
 function SearchPage() {
-  const { entries } = useStore();
+  const navigate = useNavigate();
+  const { entries, deleteEntry } = useStore();
   const [vehicle, setVehicle] = useState("all");
   const [company, setCompany] = useState("");
   const [date, setDate] = useState("");
@@ -25,6 +28,23 @@ function SearchPage() {
 
   const [dbResults, setDbResults] = useState<Entry[]>([]);
   const [isSearching, setIsSearching] = useState(false);
+
+  const handleDelete = async (id: string) => {
+    if (window.confirm("Are you sure you want to delete this trip?")) {
+      try {
+        await deleteEntry(id);
+        setDbResults(prev => prev.filter(r => r.id !== id));
+        toast.success("Trip deleted");
+      } catch {
+        toast.error("Failed to delete trip");
+      }
+    }
+  };
+
+  const handleEdit = (e: Entry) => {
+    sessionStorage.setItem("edit_entry", JSON.stringify(e));
+    navigate({ to: "/daily-entry" });
+  };
 
   const results = useMemo(() => {
     return dbResults;
@@ -100,23 +120,34 @@ function SearchPage() {
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="text-left text-xs uppercase tracking-wide text-muted-foreground bg-white/40">
-              <tr>{["Date","Vehicle","Company","Bill No","Material","Qty","Rate"].map(h => <th key={h} className="px-5 py-3 font-medium">{h}</th>)}</tr>
+              <tr>{["Date","Vehicle","Driver","Company","Bill No","Material","Qty","Rate","Actions"].map(h => <th key={h} className="px-5 py-3 font-medium">{h}</th>)}</tr>
             </thead>
             <tbody>
               {paged.map((e) => (
                 <tr key={e.id} className="border-t border-white/40 hover:bg-white/40">
                   <td className="px-5 py-3 whitespace-nowrap">{e.date}</td>
                   <td className="px-5 py-3 font-medium">{e.vehicle}</td>
+                  <td className="px-5 py-3">{e.driverName}</td>
                   <td className="px-5 py-3">{e.company}</td>
                   <td className="px-5 py-3">{e.billNo}</td>
                   <td className="px-5 py-3">{e.material}</td>
                   <td className="px-5 py-3">{e.quantity}</td>
                   <td className="px-5 py-3">₹{e.crusherRate}</td>
+                  <td className="px-5 py-3">
+                    <div className="flex items-center gap-2">
+                      <button onClick={() => handleEdit(e)} className="glass-button h-8 w-8 rounded-xl grid place-items-center text-primary hover:bg-primary/10">
+                        <Pencil className="h-4 w-4" />
+                      </button>
+                      <button onClick={() => handleDelete(e.id)} className="glass-button h-8 w-8 rounded-xl grid place-items-center text-red-500 hover:bg-red-500/10 hover:text-red-600">
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </div>
+                  </td>
                 </tr>
               ))}
               {paged.length === 0 && (
                 <tr>
-                  <td colSpan={7} className="px-5 py-12 text-center text-muted-foreground">
+                  <td colSpan={9} className="px-5 py-12 text-center text-muted-foreground">
                     {!filters ? "Click search to find trips." : "No results match your filters."}
                   </td>
                 </tr>
