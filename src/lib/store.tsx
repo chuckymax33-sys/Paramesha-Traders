@@ -31,13 +31,7 @@ export type PrintedBill = {
 
 export const VEHICLES = ["AP24TB8555", "TS07UK5333"];
 export const MATERIALS = ["Robo", "20MM", "12MM", "6MM", "40MM"];
-export const COMPANIES = [
-  "Sri Sai Constructions",
-  "Lakshmi Builders",
-  "Vasavi Infra",
-  "Krishna Cement Works",
-  "Anjaneya Projects",
-];
+export const COMPANIES: string[] = [];
 export const MONTHS = [
   "January","February","March","April","May","June",
   "July","August","September","October","November","December",
