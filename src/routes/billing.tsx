@@ -3,7 +3,8 @@ import { useMemo, useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Calendar, Building2, Truck, FileText, Receipt, TrendingUp } from "lucide-react";
 import { AppLayout } from "@/components/AppLayout";
-import { COMPANIES, MONTHS, VEHICLES, MATERIALS, useStore } from "@/lib/store";
+import { COMPANIES, MONTHS, VEHICLES, MATERIALS, useStore, type Entry } from "@/lib/store";
+import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/billing")({
@@ -29,18 +30,10 @@ function BillingPage() {
     return Array.from(new Set([...COMPANIES, ...fromData]));
   }, [entries]);
 
-  const trips = useMemo(() => {
-    if (!loaded) return [];
-    return entries.filter((e) => {
-      const d = new Date(e.date);
-      if (vehicle !== "all" && e.vehicle !== vehicle) return false;
-      if (company !== "all" && e.company !== company) return false;
-      if (month !== "all" && d.getMonth() !== MONTHS.indexOf(month)) return false;
-      if (String(d.getFullYear()) !== year) return false;
-      if (material !== "all" && e.material !== material) return false;
-      return true;
-    });
-  }, [entries, loaded, vehicle, company, month, year, material]);
+  const [dbTrips, setDbTrips] = useState<Entry[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const trips = dbTrips;
 
   const totals = useMemo(() => {
     const selectedTrips = trips.filter(t => selectedIds.has(t.id));
@@ -89,14 +82,46 @@ function BillingPage() {
           </Field>
           <div className="flex items-end">
             <button
+              disabled={isLoading}
               onClick={async () => { 
-                await loadEntries();
-                setLoaded(true); 
-                toast.success("Trips loaded"); 
+                setIsLoading(true);
+                let query = supabase.from("daily_entries").select("*").order("date", { ascending: false });
+                
+                if (vehicle !== "all") query = query.eq("vehicle_no", vehicle);
+                if (company !== "all") query = query.eq("company_name", company);
+                if (material !== "all") query = query.eq("material", material);
+                
+                if (year) {
+                  const y = parseInt(year);
+                  if (month !== "all") {
+                    const m = MONTHS.indexOf(month);
+                    const startDate = new Date(y, m, 1).toISOString().split('T')[0];
+                    const endDate = new Date(y, m + 1, 0).toISOString().split('T')[0];
+                    query = query.gte("date", startDate).lte("date", endDate);
+                  } else {
+                    const startDate = new Date(y, 0, 1).toISOString().split('T')[0];
+                    const endDate = new Date(y, 11, 31).toISOString().split('T')[0];
+                    query = query.gte("date", startDate).lte("date", endDate);
+                  }
+                }
+
+                const { data, error } = await query;
+                if (error) {
+                  toast.error("Failed to load trips");
+                } else if (data) {
+                  setDbTrips(data.map((d: any) => ({
+                    id: d.id, date: d.date, vehicle: d.vehicle_no, company: d.company_name,
+                    destination: d.destination || "", billNo: d.bill_no, material: d.material,
+                    quantity: d.quantity, crusherRate: d.crusher_rate, driverName: d.driver_name || ""
+                  })));
+                  setLoaded(true); 
+                  toast.success("Trips loaded"); 
+                }
+                setIsLoading(false);
               }}
-              className="w-full rounded-2xl bg-primary text-primary-foreground px-4 py-3 text-sm font-semibold shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all"
+              className="w-full rounded-2xl bg-primary text-primary-foreground px-4 py-3 text-sm font-semibold shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all disabled:opacity-70 disabled:cursor-not-allowed"
             >
-              Load Trips
+              {isLoading ? "Loading..." : "Load Trips"}
             </button>
           </div>
         </div>

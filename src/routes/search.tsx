@@ -3,7 +3,8 @@ import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { Search as SearchIcon, X, ChevronLeft, ChevronRight } from "lucide-react";
 import { AppLayout } from "@/components/AppLayout";
-import { COMPANIES, VEHICLES, useStore } from "@/lib/store";
+import { COMPANIES, VEHICLES, useStore, type Entry } from "@/lib/store";
+import { supabase } from "@/lib/supabase";
 
 export const Route = createFileRoute("/search")({
   head: () => ({ meta: [{ title: "Search — CrusherFlow" }] }),
@@ -22,24 +23,46 @@ function SearchPage() {
 
   const companies = useMemo(() => Array.from(new Set([...COMPANIES, ...entries.map(e => e.company)])), [entries]);
 
+  const [dbResults, setDbResults] = useState<Entry[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+
   const results = useMemo(() => {
-    if (!filters) return [];
-    return entries.filter((e) => {
-      if (filters.vehicle !== "all" && e.vehicle !== filters.vehicle) return false;
-      if (filters.company && !e.company.toLowerCase().includes(filters.company.toLowerCase())) return false;
-      if (filters.date && e.date !== filters.date) return false;
-      return true;
-    });
-  }, [entries, filters]);
+    return dbResults;
+  }, [dbResults]);
 
   const pages = Math.max(1, Math.ceil(results.length / PAGE));
   const paged = results.slice(page * PAGE, (page + 1) * PAGE);
 
-  const clear = () => { setVehicle("all"); setCompany(""); setDate(""); setPage(0); setFilters(null); };
+  const clear = () => { setVehicle("all"); setCompany(""); setDate(""); setPage(0); setFilters(null); setDbResults([]); };
   
-  const handleSearch = () => {
+  const handleSearch = async () => {
     setFilters({ vehicle, company, date });
     setPage(0);
+    setIsSearching(true);
+
+    let query = supabase.from("daily_entries").select("*").order("created_at", { ascending: false });
+    
+    if (vehicle !== "all") query = query.eq("vehicle_no", vehicle);
+    if (company) query = query.ilike("company_name", `%${company}%`);
+    if (date) query = query.eq("date", date);
+    
+    const { data, error } = await query.limit(500); // safety limit
+    
+    if (!error && data) {
+       setDbResults(data.map((d: any) => ({
+          id: d.id,
+          date: d.date,
+          vehicle: d.vehicle_no,
+          company: d.company_name,
+          destination: d.destination || "",
+          billNo: d.bill_no,
+          material: d.material,
+          quantity: d.quantity,
+          crusherRate: d.crusher_rate,
+          driverName: d.driver_name || ""
+       })));
+    }
+    setIsSearching(false);
   };
 
   return (

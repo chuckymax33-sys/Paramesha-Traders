@@ -7,6 +7,8 @@ import { COMPANIES, MONTHS, useStore } from "@/lib/store";
 import { toast } from "sonner";
 import html2pdf from "html2pdf.js";
 import ParameshaInvoiceTemplate, { type InvoiceItem } from "@/components/ParameshaInvoiceTemplate";
+import { supabase } from "@/lib/supabase";
+import { type Entry } from "@/lib/store";
 
 export const Route = createFileRoute("/billing-format")({
   head: () => ({ meta: [{ title: "Billing Format — CrusherFlow" }] }),
@@ -32,6 +34,8 @@ function BillingFormat() {
     setGstNo(Math.floor(100 + Math.random() * 900).toString());
   }, []);
 
+  const [dbTrips, setDbTrips] = useState<Entry[]>([]);
+
   useEffect(() => {
     const raw = sessionStorage.getItem("billing:context");
     if (raw) {
@@ -39,27 +43,41 @@ function BillingFormat() {
         const c = JSON.parse(raw) as Ctx;
         setCtx(c);
         if (c.company && c.company !== "all") setCompany(c.company);
+        
+        if (c.selectedIds && c.selectedIds.length > 0) {
+           supabase.from("daily_entries").select("*").in("id", c.selectedIds).then(({ data }) => {
+              if (data) {
+                  setDbTrips(data.map((d: any) => ({
+                    id: d.id, date: d.date, vehicle: d.vehicle_no, company: d.company_name,
+                    destination: d.destination || "", billNo: d.bill_no, material: d.material,
+                    quantity: d.quantity, crusherRate: d.crusher_rate, driverName: d.driver_name || ""
+                  })));
+              }
+           });
+        }
       } catch {}
     }
   }, []);
 
   const companies = useMemo(() => Array.from(new Set([...COMPANIES, ...entries.map(e => e.company)])), [entries]);
 
-  const filtered = useMemo(() => entries.filter((e) => {
+  const filtered = useMemo(() => {
     if (ctx.selectedIds) {
-      return ctx.selectedIds.includes(e.id);
+      return dbTrips;
     }
     
-    // Fallback if accessed via direct navigation without selectedIds
-    if (!company) return false;
-    if (e.company !== company) return false;
-    const d = new Date(e.date);
-    if (ctx.month !== "all" && d.getMonth() !== MONTHS.indexOf(ctx.month)) return false;
-    if (ctx.year && String(d.getFullYear()) !== ctx.year) return false;
-    if (ctx.vehicle !== "all" && e.vehicle !== ctx.vehicle) return false;
-    if (ctx.material && ctx.material !== "all" && e.material !== ctx.material) return false;
-    return true;
-  }), [entries, company, ctx]);
+    const fallbackSource = entries;
+    return fallbackSource.filter((e) => {
+      if (!company) return false;
+      if (e.company !== company) return false;
+      const d = new Date(e.date);
+      if (ctx.month !== "all" && d.getMonth() !== MONTHS.indexOf(ctx.month)) return false;
+      if (ctx.year && String(d.getFullYear()) !== ctx.year) return false;
+      if (ctx.vehicle !== "all" && e.vehicle !== ctx.vehicle) return false;
+      if (ctx.material && ctx.material !== "all" && e.material !== ctx.material) return false;
+      return true;
+    });
+  }, [entries, dbTrips, company, ctx]);
 
   useEffect(() => {
     setRates((prev) => {

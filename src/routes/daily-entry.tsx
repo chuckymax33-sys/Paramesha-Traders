@@ -89,7 +89,16 @@ function DailyEntry() {
             </datalist>
           </Field>
           <Field label="Driver Name">
-            <input value={form.driverName} onChange={(e) => setForm({ ...form, driverName: e.target.value })} className="glass-select" placeholder="e.g. Raju" />
+            <input 
+              list="drivers-list"
+              value={form.driverName} 
+              onChange={(e) => setForm({ ...form, driverName: e.target.value })} 
+              className="glass-select" 
+              placeholder="e.g. Raju" 
+            />
+            <datalist id="drivers-list">
+              {Array.from(new Set(entries.map(e => e.driverName).filter(Boolean))).map((d) => <option key={d} value={d} />)}
+            </datalist>
           </Field>
           <Field label="Date">
             <input type="date" value={form.date} onChange={(e) => setForm({ ...form, date: e.target.value })} className="glass-select" />
@@ -107,7 +116,16 @@ function DailyEntry() {
             </datalist>
           </Field>
           <Field label="Destination">
-            <input value={form.destination} onChange={(e) => setForm({ ...form, destination: e.target.value })} className="glass-select" placeholder="e.g. Hyderabad" />
+            <input 
+              list="destinations-list"
+              value={form.destination} 
+              onChange={(e) => setForm({ ...form, destination: e.target.value })} 
+              className="glass-select" 
+              placeholder="e.g. Hyderabad" 
+            />
+            <datalist id="destinations-list">
+              {Array.from(new Set(entries.map(e => e.destination).filter(Boolean))).map((d) => <option key={d} value={d} />)}
+            </datalist>
           </Field>
           <Field label="Bill No">
             <input value={form.billNo} onChange={(e) => setForm({ ...form, billNo: e.target.value })} className="glass-select" placeholder="B-1001" />

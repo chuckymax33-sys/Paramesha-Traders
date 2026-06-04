@@ -51,11 +51,10 @@ type Store = {
   addEntry: (e: Omit<Entry, "id">) => Promise<void>;
   updateEntry: (id: string, e: Omit<Entry, "id">) => Promise<void>;
   deleteEntry: (id: string) => Promise<void>;
-  bills: PrintedBill[];
+
   addBill: (b: Omit<PrintedBill, "id">) => Promise<PrintedBill>;
   deleteBill: (id: string) => Promise<void>;
   loadEntries: () => Promise<void>;
-  loadBills: () => Promise<void>;
 };
 
 const Ctx = createContext<Store | null>(null);
@@ -66,7 +65,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     return false;
   });
   const [entries, setEntries] = useState<Entry[]>([]);
-  const [bills, setBills] = useState<PrintedBill[]>([]);
+
 
   const loadEntries = async () => {
     const { data, error } = await supabase.from("daily_entries").select("*").order("created_at", { ascending: false }).limit(10);
@@ -89,30 +88,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     })));
   };
 
-  const loadBills = async () => {
-    const { data, error } = await supabase.from("printed_bills").select("*").order("created_at", { ascending: false });
-    if (error) {
-      console.error(error);
-      toast.error("Failed to load bills");
-      return;
-    }
-    setBills(data.map((d: any) => ({
-      id: d.id,
-      gstBillNumber: d.gst_bill_no,
-      company: d.company_name,
-      address: d.address || "",
-      partyGstinNo: d.party_gstin_no || "",
-      printDate: d.printed_at,
-      totalAmount: d.grand_total,
-      rows: d.items,
-      subtotal: d.subtotal,
-      gst: d.gst_amount
-    })));
-  };
+
 
   useEffect(() => {
     loadEntries();
-    loadBills();
   }, []);
 
   useEffect(() => {
@@ -167,8 +146,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       if (error) throw error;
       await loadEntries();
     },
-    bills,
-    loadBills,
+
+
     addBill: async (b) => {
       const { data, error } = await supabase.from("printed_bills").insert({
         gst_bill_no: b.gstBillNumber,
@@ -185,7 +164,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       }).select().single();
       
       if (error) throw error;
-      await loadBills();
+
       
       return {
         id: data.id,
@@ -203,7 +182,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     deleteBill: async (id) => {
       const { error } = await supabase.from("printed_bills").delete().eq("id", id);
       if (error) throw error;
-      await loadBills();
+
     }
   };
 

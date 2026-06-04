@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Eye, Printer, Download, Search as SearchIcon, FileText, X, Trash2 } from "lucide-react";
 import { AppLayout } from "@/components/AppLayout";
@@ -15,10 +15,36 @@ export const Route = createFileRoute("/printed-bills")({
 import { supabase } from "@/lib/supabase";
 
 function PrintedBills() {
-  const { bills, deleteBill } = useStore();
+  const { deleteBill } = useStore();
   const [q, setQ] = useState("");
   const [viewing, setViewing] = useState<PrintedBill | null>(null);
   const [isPrinting, setIsPrinting] = useState(false);
+  const [dbBills, setDbBills] = useState<PrintedBill[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  const fetchBills = async () => {
+    setIsLoading(true);
+    const { data } = await supabase.from("printed_bills").select("*").order("created_at", { ascending: false });
+    if (data) {
+      setDbBills(data.map((d: any) => ({
+        id: d.id,
+        gstBillNumber: d.gst_bill_no,
+        company: d.company_name,
+        address: d.address || "",
+        partyGstinNo: d.party_gstin_no || "",
+        printDate: d.printed_at,
+        totalAmount: d.grand_total,
+        rows: d.items,
+        subtotal: d.subtotal,
+        gst: d.gst_amount
+      })));
+    }
+    setIsLoading(false);
+  };
+
+  useEffect(() => {
+    fetchBills();
+  }, []);
 
   const downloadPDF = async (b: PrintedBill) => {
     setIsPrinting(true);
@@ -50,9 +76,9 @@ function PrintedBills() {
     }, 400);
   };
 
-  const filtered = useMemo(() => bills.filter((b) =>
+  const filtered = useMemo(() => dbBills.filter((b) =>
     !q || b.gstBillNumber.toLowerCase().includes(q.toLowerCase()) || b.company.toLowerCase().includes(q.toLowerCase())
-  ), [bills, q]);
+  ), [dbBills, q]);
 
   return (
     <AppLayout title="Printed Bills" subtitle="Reprint or download any past GST invoice.">
@@ -104,12 +130,16 @@ function PrintedBills() {
                 <button disabled={isPrinting} onClick={() => downloadPDF(b)} className="glass-button rounded-xl px-3 py-2 text-xs font-semibold inline-flex items-center gap-1.5 disabled:opacity-50">
                   <Download className="h-3.5 w-3.5" /> PDF
                 </button>
-                <button disabled={isPrinting} onClick={() => {
+                <button disabled={isPrinting} onClick={async () => {
                   if (window.confirm("Are you sure you want to delete this bill? This cannot be undone.")) {
-                    deleteBill(b.id).then(() => toast.success("Bill deleted")).catch((err) => {
+                    try {
+                      await deleteBill(b.id);
+                      fetchBills();
+                      toast.success("Bill deleted");
+                    } catch (err) {
                       console.error(err);
                       toast.error("Failed to delete bill");
-                    });
+                    }
                   }
                 }} className="glass-button rounded-xl px-3 py-2 text-xs font-semibold inline-flex items-center gap-1.5 text-red-500 hover:text-red-600 disabled:opacity-50">
                   <Trash2 className="h-3.5 w-3.5" /> Delete
