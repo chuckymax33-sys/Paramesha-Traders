@@ -45,7 +45,7 @@ function BillingFormat() {
         if (c.company && c.company !== "all") setCompany(c.company);
         
         if (c.selectedIds && c.selectedIds.length > 0) {
-           supabase.from("daily_entries").select("*").in("id", c.selectedIds).then(({ data }) => {
+           supabase.from("daily_entries").select("*").in("id", c.selectedIds).order("date", { ascending: true }).order("bill_no", { ascending: true }).then(({ data }) => {
               if (data) {
                   setDbTrips(data.map((d: any) => ({
                     id: d.id, date: d.date, vehicle: d.vehicle_no, company: d.company_name,

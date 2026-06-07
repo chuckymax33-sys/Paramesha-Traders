@@ -85,7 +85,7 @@ function BillingPage() {
               disabled={isLoading}
               onClick={async () => { 
                 setIsLoading(true);
-                let query = supabase.from("daily_entries").select("*").order("date", { ascending: false });
+                let query = supabase.from("daily_entries").select("*").order("date", { ascending: true }).order("bill_no", { ascending: true });
                 
                 if (vehicle !== "all") query = query.eq("vehicle_no", vehicle);
                 if (company !== "all") query = query.eq("company_name", company);
