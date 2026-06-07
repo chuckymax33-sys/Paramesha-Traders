@@ -89,7 +89,7 @@ function BillingFormat() {
 
   const rows = useMemo(() => {
     return filtered.map((e) => {
-      const rate = rates[e.id] ?? Math.round(e.crusherRate);
+      const rate = rates[e.id] ?? Math.round(Number(e.crusherRate) || 0);
       return {
         id: e.id,
         date: new Date(e.date).toLocaleDateString("en-GB").replace(/\//g, "/"),
@@ -97,7 +97,7 @@ function BillingFormat() {
         vehicleNo: e.vehicle,
         material: e.material,
         hsnCode: "",
-        qty: e.quantity,
+        qty: Number(e.quantity) || 0,
         rate: rate,
       };
     });
@@ -177,7 +177,7 @@ function BillingFormat() {
                       <td className="px-3 py-2 text-xs">{r.tripSheetNo}</td>
                       <td className="px-3 py-2 text-xs">{r.vehicleNo}</td>
                       <td className="px-3 py-2 font-medium">{r.material}</td>
-                      <td className="px-3 py-2">{r.qty.toFixed(2)}</td>
+                      <td className="px-3 py-2">{Number(r.qty).toFixed(2)}</td>
                       <td className="px-3 py-2">
                         <input
                           type="number" min={0}

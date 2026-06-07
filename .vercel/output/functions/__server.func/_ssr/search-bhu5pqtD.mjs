@@ -1,6 +1,6 @@
 import { r as reactExports, j as jsxRuntimeExports } from "../_libs/react.mjs";
-import { A as AppLayout } from "./AppLayout-BhNDFMbx.mjs";
-import { u as useStore, C as COMPANIES, V as VEHICLES, s as supabase } from "./router-B5aOr_WX.mjs";
+import { A as AppLayout } from "./AppLayout-QMdXlTta.mjs";
+import { u as useStore, C as COMPANIES, V as VEHICLES, s as supabase } from "./router-CDQ16I2E.mjs";
 import { t as toast } from "../_libs/sonner.mjs";
 import { d as useNavigate } from "../_libs/tanstack__react-router.mjs";
 import { m as motion } from "../_libs/framer-motion.mjs";

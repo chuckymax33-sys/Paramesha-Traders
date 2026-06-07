@@ -1,6 +1,6 @@
 import { r as reactExports, j as jsxRuntimeExports } from "../_libs/react.mjs";
-import { A as AppLayout } from "./AppLayout-BhNDFMbx.mjs";
-import { u as useStore, V as VEHICLES, C as COMPANIES, M as MATERIALS } from "./router-B5aOr_WX.mjs";
+import { A as AppLayout } from "./AppLayout-QMdXlTta.mjs";
+import { u as useStore, V as VEHICLES, C as COMPANIES, M as MATERIALS } from "./router-CDQ16I2E.mjs";
 import { t as toast } from "../_libs/sonner.mjs";
 import { m as motion, A as AnimatePresence } from "../_libs/framer-motion.mjs";
 import { b as Save, c as Plus, R as RotateCcw, d as Truck, P as Pencil, T as Trash2 } from "../_libs/lucide-react.mjs";

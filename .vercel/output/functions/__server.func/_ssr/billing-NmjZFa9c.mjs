@@ -1,7 +1,7 @@
 import { r as reactExports, j as jsxRuntimeExports } from "../_libs/react.mjs";
 import { d as useNavigate } from "../_libs/tanstack__react-router.mjs";
-import { A as AppLayout } from "./AppLayout-BhNDFMbx.mjs";
-import { u as useStore, C as COMPANIES, V as VEHICLES, a as MONTHS, M as MATERIALS, s as supabase } from "./router-B5aOr_WX.mjs";
+import { A as AppLayout } from "./AppLayout-QMdXlTta.mjs";
+import { u as useStore, C as COMPANIES, V as VEHICLES, a as MONTHS, M as MATERIALS, s as supabase } from "./router-CDQ16I2E.mjs";
 import { t as toast } from "../_libs/sonner.mjs";
 import { m as motion } from "../_libs/framer-motion.mjs";
 import { d as Truck, B as Building2, e as Calendar, F as FileText, f as Receipt, g as TrendingUp } from "../_libs/lucide-react.mjs";
@@ -94,11 +94,7 @@ function BillingPage() {
       ] }) }),
       /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "flex items-end", children: /* @__PURE__ */ jsxRuntimeExports.jsx("button", { disabled: isLoading, onClick: async () => {
         setIsLoading(true);
-        let query = supabase.from("daily_entries").select("*").order("date", {
-          ascending: true
-        }).order("bill_no", {
-          ascending: true
-        });
+        let query = supabase.from("daily_entries").select("*");
         if (vehicle !== "all") query = query.eq("vehicle_no", vehicle);
         if (company !== "all") query = query.eq("company_name", company);
         if (material !== "all") query = query.eq("material", material);
@@ -115,6 +111,11 @@ function BillingPage() {
             query = query.gte("date", startDate).lte("date", endDate);
           }
         }
+        query = query.order("date", {
+          ascending: true
+        }).order("bill_no", {
+          ascending: true
+        });
         const {
           data,
           error

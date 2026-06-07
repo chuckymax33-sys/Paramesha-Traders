@@ -37,8 +37,8 @@ function BillingPage() {
 
   const totals = useMemo(() => {
     const selectedTrips = trips.filter(t => selectedIds.has(t.id));
-    const qty = selectedTrips.reduce((s, t) => s + t.quantity, 0);
-    const amount = selectedTrips.reduce((s, t) => s + t.quantity * t.crusherRate, 0);
+    const qty = selectedTrips.reduce((s, t) => s + (Number(t.quantity) || 0), 0);
+    const amount = selectedTrips.reduce((s, t) => s + (Number(t.quantity) || 0) * (Number(t.crusherRate) || 0), 0);
     return { count: selectedTrips.length, qty, amount };
   }, [trips, selectedIds]);
 
@@ -175,9 +175,9 @@ function BillingPage() {
                       <td className="px-5 py-3 font-medium">{t.vehicle}</td>
                       <td className="px-5 py-3">{t.company}</td>
                       <td className="px-5 py-3">{t.material}</td>
-                      <td className="px-5 py-3">{t.quantity}</td>
-                      <td className="px-5 py-3">₹{t.crusherRate}</td>
-                      <td className="px-5 py-3 font-semibold">₹{(t.quantity * t.crusherRate).toLocaleString("en-IN")}</td>
+                      <td className="px-5 py-3 font-semibold">{(Number(t.quantity) || 0).toFixed(2)} Tons</td>
+                      <td className="px-5 py-3 text-white/60">₹{Number(t.crusherRate) || 0}</td>
+                      <td className="px-5 py-3 font-semibold">₹{((Number(t.quantity) || 0) * (Number(t.crusherRate) || 0)).toLocaleString("en-IN")}</td>
                     </tr>
                   ))}
                   {trips.length === 0 && <tr><td colSpan={7} className="px-5 py-12 text-center text-muted-foreground">No trips found for the selected filters.</td></tr>}
