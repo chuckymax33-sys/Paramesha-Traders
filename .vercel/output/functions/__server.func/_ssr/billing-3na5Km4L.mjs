@@ -1,10 +1,10 @@
 import { r as reactExports, j as jsxRuntimeExports } from "../_libs/react.mjs";
 import { d as useNavigate } from "../_libs/tanstack__react-router.mjs";
-import { A as AppLayout } from "./AppLayout-BUEmiuLK.mjs";
-import { u as useStore, C as COMPANIES, a as MONTHS, V as VEHICLES, M as MATERIALS } from "./router-qAY7HeMS.mjs";
+import { A as AppLayout } from "./AppLayout-BhNDFMbx.mjs";
+import { u as useStore, C as COMPANIES, V as VEHICLES, a as MONTHS, M as MATERIALS, s as supabase } from "./router-B5aOr_WX.mjs";
 import { t as toast } from "../_libs/sonner.mjs";
 import { m as motion } from "../_libs/framer-motion.mjs";
-import { c as Truck, B as Building2, e as Calendar, F as FileText, f as Receipt, g as TrendingUp } from "../_libs/lucide-react.mjs";
+import { d as Truck, B as Building2, e as Calendar, F as FileText, f as Receipt, g as TrendingUp } from "../_libs/lucide-react.mjs";
 import "../_libs/tanstack__router-core.mjs";
 import "../_libs/tanstack__history.mjs";
 import "../_libs/cookie-es.mjs";
@@ -51,18 +51,9 @@ function BillingPage() {
     const fromData = Array.from(new Set(entries.map((e) => e.company)));
     return Array.from(/* @__PURE__ */ new Set([...COMPANIES, ...fromData]));
   }, [entries]);
-  const trips = reactExports.useMemo(() => {
-    if (!loaded) return [];
-    return entries.filter((e) => {
-      const d = new Date(e.date);
-      if (vehicle !== "all" && e.vehicle !== vehicle) return false;
-      if (company !== "all" && e.company !== company) return false;
-      if (month !== "all" && d.getMonth() !== MONTHS.indexOf(month)) return false;
-      if (String(d.getFullYear()) !== year) return false;
-      if (material !== "all" && e.material !== material) return false;
-      return true;
-    });
-  }, [entries, loaded, vehicle, company, month, year, material]);
+  const [dbTrips, setDbTrips] = reactExports.useState([]);
+  const [isLoading, setIsLoading] = reactExports.useState(false);
+  const trips = dbTrips;
   const totals = reactExports.useMemo(() => {
     const selectedTrips = trips.filter((t) => selectedIds.has(t.id));
     const qty = selectedTrips.reduce((s, t) => s + t.quantity, 0);
@@ -101,11 +92,53 @@ function BillingPage() {
         /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "all", children: "All materials" }),
         MATERIALS.map((m) => /* @__PURE__ */ jsxRuntimeExports.jsx("option", { children: m }, m))
       ] }) }),
-      /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "flex items-end", children: /* @__PURE__ */ jsxRuntimeExports.jsx("button", { onClick: async () => {
-        await loadEntries();
-        setLoaded(true);
-        toast.success("Trips loaded");
-      }, className: "w-full rounded-2xl bg-primary text-primary-foreground px-4 py-3 text-sm font-semibold shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all", children: "Load Trips" }) })
+      /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "flex items-end", children: /* @__PURE__ */ jsxRuntimeExports.jsx("button", { disabled: isLoading, onClick: async () => {
+        setIsLoading(true);
+        let query = supabase.from("daily_entries").select("*").order("date", {
+          ascending: true
+        }).order("bill_no", {
+          ascending: true
+        });
+        if (vehicle !== "all") query = query.eq("vehicle_no", vehicle);
+        if (company !== "all") query = query.eq("company_name", company);
+        if (material !== "all") query = query.eq("material", material);
+        if (year) {
+          const y = parseInt(year);
+          if (month !== "all") {
+            const m = MONTHS.indexOf(month);
+            const startDate = new Date(y, m, 1).toISOString().split("T")[0];
+            const endDate = new Date(y, m + 1, 0).toISOString().split("T")[0];
+            query = query.gte("date", startDate).lte("date", endDate);
+          } else {
+            const startDate = new Date(y, 0, 1).toISOString().split("T")[0];
+            const endDate = new Date(y, 11, 31).toISOString().split("T")[0];
+            query = query.gte("date", startDate).lte("date", endDate);
+          }
+        }
+        const {
+          data,
+          error
+        } = await query;
+        if (error) {
+          toast.error("Failed to load trips");
+        } else if (data) {
+          setDbTrips(data.map((d) => ({
+            id: d.id,
+            date: d.date,
+            vehicle: d.vehicle_no,
+            company: d.company_name,
+            destination: d.destination || "",
+            billNo: d.bill_no,
+            material: d.material,
+            quantity: d.quantity,
+            crusherRate: d.crusher_rate,
+            driverName: d.driver_name || ""
+          })));
+          setLoaded(true);
+          toast.success("Trips loaded");
+        }
+        setIsLoading(false);
+      }, className: "w-full rounded-2xl bg-primary text-primary-foreground px-4 py-3 text-sm font-semibold shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all disabled:opacity-70 disabled:cursor-not-allowed", children: isLoading ? "Loading..." : "Load Trips" }) })
     ] }) }),
     loaded && /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
       /* @__PURE__ */ jsxRuntimeExports.jsxs(motion.section, { initial: {

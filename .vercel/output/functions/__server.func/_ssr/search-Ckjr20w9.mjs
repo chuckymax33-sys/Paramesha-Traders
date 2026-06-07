@@ -1,10 +1,21 @@
 import { r as reactExports, j as jsxRuntimeExports } from "../_libs/react.mjs";
-import { A as AppLayout } from "./AppLayout-BUEmiuLK.mjs";
-import { u as useStore, C as COMPANIES, V as VEHICLES } from "./router-qAY7HeMS.mjs";
-import "../_libs/sonner.mjs";
+import { A as AppLayout } from "./AppLayout-BhNDFMbx.mjs";
+import { u as useStore, C as COMPANIES, V as VEHICLES, s as supabase } from "./router-B5aOr_WX.mjs";
+import { t as toast } from "../_libs/sonner.mjs";
+import { d as useNavigate } from "../_libs/tanstack__react-router.mjs";
 import { m as motion } from "../_libs/framer-motion.mjs";
-import { S as Search, X, C as ChevronLeft, a as ChevronRight } from "../_libs/lucide-react.mjs";
-import "../_libs/tanstack__react-router.mjs";
+import { S as Search, X, P as Pencil, T as Trash2, C as ChevronLeft, a as ChevronRight } from "../_libs/lucide-react.mjs";
+import "../_libs/tanstack__query-core.mjs";
+import "../_libs/tanstack__react-query.mjs";
+import "../_libs/supabase__supabase-js.mjs";
+import "../_libs/supabase__postgrest-js.mjs";
+import "../_libs/supabase__realtime-js.mjs";
+import "../_libs/supabase__phoenix.mjs";
+import "../_libs/supabase__storage-js.mjs";
+import "../_libs/iceberg-js.mjs";
+import "../_libs/supabase__auth-js.mjs";
+import "tslib";
+import "../_libs/supabase__functions-js.mjs";
 import "../_libs/tanstack__router-core.mjs";
 import "../_libs/tanstack__history.mjs";
 import "../_libs/cookie-es.mjs";
@@ -18,23 +29,14 @@ import "crypto";
 import "async_hooks";
 import "stream";
 import "../_libs/isbot.mjs";
-import "../_libs/tanstack__query-core.mjs";
-import "../_libs/tanstack__react-query.mjs";
-import "../_libs/supabase__supabase-js.mjs";
-import "../_libs/supabase__postgrest-js.mjs";
-import "../_libs/supabase__realtime-js.mjs";
-import "../_libs/supabase__phoenix.mjs";
-import "../_libs/supabase__storage-js.mjs";
-import "../_libs/iceberg-js.mjs";
-import "../_libs/supabase__auth-js.mjs";
-import "tslib";
-import "../_libs/supabase__functions-js.mjs";
 import "../_libs/motion-dom.mjs";
 import "../_libs/motion-utils.mjs";
 const PAGE = 6;
 function SearchPage() {
+  const navigate = useNavigate();
   const {
-    entries
+    entries,
+    deleteEntry
   } = useStore();
   const [vehicle, setVehicle] = reactExports.useState("all");
   const [company, setCompany] = reactExports.useState("");
@@ -42,15 +44,28 @@ function SearchPage() {
   const [page, setPage] = reactExports.useState(0);
   const [filters, setFilters] = reactExports.useState(null);
   const companies = reactExports.useMemo(() => Array.from(/* @__PURE__ */ new Set([...COMPANIES, ...entries.map((e) => e.company)])), [entries]);
-  const results = reactExports.useMemo(() => {
-    if (!filters) return [];
-    return entries.filter((e) => {
-      if (filters.vehicle !== "all" && e.vehicle !== filters.vehicle) return false;
-      if (filters.company && !e.company.toLowerCase().includes(filters.company.toLowerCase())) return false;
-      if (filters.date && e.date !== filters.date) return false;
-      return true;
+  const [dbResults, setDbResults] = reactExports.useState([]);
+  const [isSearching, setIsSearching] = reactExports.useState(false);
+  const handleDelete = async (id) => {
+    if (window.confirm("Are you sure you want to delete this trip?")) {
+      try {
+        await deleteEntry(id);
+        setDbResults((prev) => prev.filter((r) => r.id !== id));
+        toast.success("Trip deleted");
+      } catch {
+        toast.error("Failed to delete trip");
+      }
+    }
+  };
+  const handleEdit = (e) => {
+    sessionStorage.setItem("edit_entry", JSON.stringify(e));
+    navigate({
+      to: "/daily-entry"
     });
-  }, [entries, filters]);
+  };
+  const results = reactExports.useMemo(() => {
+    return dbResults;
+  }, [dbResults]);
   const pages = Math.max(1, Math.ceil(results.length / PAGE));
   const paged = results.slice(page * PAGE, (page + 1) * PAGE);
   const clear = () => {
@@ -59,14 +74,41 @@ function SearchPage() {
     setDate("");
     setPage(0);
     setFilters(null);
+    setDbResults([]);
   };
-  const handleSearch = () => {
+  const handleSearch = async () => {
     setFilters({
       vehicle,
       company,
       date
     });
     setPage(0);
+    setIsSearching(true);
+    let query = supabase.from("daily_entries").select("*").order("created_at", {
+      ascending: false
+    });
+    if (vehicle !== "all") query = query.eq("vehicle_no", vehicle);
+    if (company) query = query.ilike("company_name", `%${company}%`);
+    if (date) query = query.eq("date", date);
+    const {
+      data,
+      error
+    } = await query.limit(500);
+    if (!error && data) {
+      setDbResults(data.map((d) => ({
+        id: d.id,
+        date: d.date,
+        vehicle: d.vehicle_no,
+        company: d.company_name,
+        destination: d.destination || "",
+        billNo: d.bill_no,
+        material: d.material,
+        quantity: d.quantity,
+        crusherRate: d.crusher_rate,
+        driverName: d.driver_name || ""
+      })));
+    }
+    setIsSearching(false);
   };
   return /* @__PURE__ */ jsxRuntimeExports.jsxs(AppLayout, { title: "Search", subtitle: "Find any trip in seconds.", children: [
     /* @__PURE__ */ jsxRuntimeExports.jsx(motion.section, { initial: {
@@ -115,11 +157,12 @@ function SearchPage() {
         ] })
       ] }) }),
       /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "overflow-x-auto", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("table", { className: "w-full text-sm", children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsx("thead", { className: "text-left text-xs uppercase tracking-wide text-muted-foreground bg-white/40", children: /* @__PURE__ */ jsxRuntimeExports.jsx("tr", { children: ["Date", "Vehicle", "Company", "Bill No", "Material", "Qty", "Rate"].map((h) => /* @__PURE__ */ jsxRuntimeExports.jsx("th", { className: "px-5 py-3 font-medium", children: h }, h)) }) }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx("thead", { className: "text-left text-xs uppercase tracking-wide text-muted-foreground bg-white/40", children: /* @__PURE__ */ jsxRuntimeExports.jsx("tr", { children: ["Date", "Vehicle", "Driver", "Company", "Bill No", "Material", "Qty", "Rate", "Actions"].map((h) => /* @__PURE__ */ jsxRuntimeExports.jsx("th", { className: "px-5 py-3 font-medium", children: h }, h)) }) }),
         /* @__PURE__ */ jsxRuntimeExports.jsxs("tbody", { children: [
           paged.map((e) => /* @__PURE__ */ jsxRuntimeExports.jsxs("tr", { className: "border-t border-white/40 hover:bg-white/40", children: [
             /* @__PURE__ */ jsxRuntimeExports.jsx("td", { className: "px-5 py-3 whitespace-nowrap", children: e.date }),
             /* @__PURE__ */ jsxRuntimeExports.jsx("td", { className: "px-5 py-3 font-medium", children: e.vehicle }),
+            /* @__PURE__ */ jsxRuntimeExports.jsx("td", { className: "px-5 py-3", children: e.driverName }),
             /* @__PURE__ */ jsxRuntimeExports.jsx("td", { className: "px-5 py-3", children: e.company }),
             /* @__PURE__ */ jsxRuntimeExports.jsx("td", { className: "px-5 py-3", children: e.billNo }),
             /* @__PURE__ */ jsxRuntimeExports.jsx("td", { className: "px-5 py-3", children: e.material }),
@@ -127,9 +170,13 @@ function SearchPage() {
             /* @__PURE__ */ jsxRuntimeExports.jsxs("td", { className: "px-5 py-3", children: [
               "₹",
               e.crusherRate
-            ] })
+            ] }),
+            /* @__PURE__ */ jsxRuntimeExports.jsx("td", { className: "px-5 py-3", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center gap-2", children: [
+              /* @__PURE__ */ jsxRuntimeExports.jsx("button", { onClick: () => handleEdit(e), className: "glass-button h-8 w-8 rounded-xl grid place-items-center text-primary hover:bg-primary/10", children: /* @__PURE__ */ jsxRuntimeExports.jsx(Pencil, { className: "h-4 w-4" }) }),
+              /* @__PURE__ */ jsxRuntimeExports.jsx("button", { onClick: () => handleDelete(e.id), className: "glass-button h-8 w-8 rounded-xl grid place-items-center text-red-500 hover:bg-red-500/10 hover:text-red-600", children: /* @__PURE__ */ jsxRuntimeExports.jsx(Trash2, { className: "h-4 w-4" }) })
+            ] }) })
           ] }, e.id)),
-          paged.length === 0 && /* @__PURE__ */ jsxRuntimeExports.jsx("tr", { children: /* @__PURE__ */ jsxRuntimeExports.jsx("td", { colSpan: 7, className: "px-5 py-12 text-center text-muted-foreground", children: !filters ? "Click search to find trips." : "No results match your filters." }) })
+          paged.length === 0 && /* @__PURE__ */ jsxRuntimeExports.jsx("tr", { children: /* @__PURE__ */ jsxRuntimeExports.jsx("td", { colSpan: 9, className: "px-5 py-12 text-center text-muted-foreground", children: !filters ? "Click search to find trips." : "No results match your filters." }) })
         ] })
       ] }) }),
       /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "px-6 py-4 border-t border-white/40 flex items-center justify-between text-sm", children: [

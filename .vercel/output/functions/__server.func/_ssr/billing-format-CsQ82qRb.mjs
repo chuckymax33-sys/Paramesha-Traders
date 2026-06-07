@@ -1,9 +1,9 @@
 import { r as reactExports, j as jsxRuntimeExports } from "../_libs/react.mjs";
 import { d as useNavigate } from "../_libs/tanstack__react-router.mjs";
-import { A as AppLayout } from "./AppLayout-BUEmiuLK.mjs";
-import { u as useStore, C as COMPANIES, a as MONTHS } from "./router-qAY7HeMS.mjs";
+import { A as AppLayout } from "./AppLayout-BhNDFMbx.mjs";
+import { u as useStore, s as supabase, C as COMPANIES, a as MONTHS } from "./router-B5aOr_WX.mjs";
 import { t as toast } from "../_libs/sonner.mjs";
-import { P as ParameshaInvoiceTemplate } from "./ParameshaInvoiceTemplate-BHOdDfSE.mjs";
+import { P as ParameshaInvoiceTemplate } from "./ParameshaInvoiceTemplate-C6B51PtT.mjs";
 import { m as motion } from "../_libs/framer-motion.mjs";
 import { A as ArrowLeft, F as FileText } from "../_libs/lucide-react.mjs";
 import "../_libs/tanstack__router-core.mjs";
@@ -35,8 +35,7 @@ import "../_libs/motion-utils.mjs";
 function BillingFormat() {
   const {
     entries,
-    addBill,
-    uploadInvoicePDF
+    addBill
   } = useStore();
   const navigate = useNavigate();
   const [ctx, setCtx] = reactExports.useState({
@@ -56,6 +55,7 @@ function BillingFormat() {
   reactExports.useEffect(() => {
     setGstNo(Math.floor(100 + Math.random() * 900).toString());
   }, []);
+  const [dbTrips, setDbTrips] = reactExports.useState([]);
   reactExports.useEffect(() => {
     const raw = sessionStorage.getItem("billing:context");
     if (raw) {
@@ -63,24 +63,51 @@ function BillingFormat() {
         const c = JSON.parse(raw);
         setCtx(c);
         if (c.company && c.company !== "all") setCompany(c.company);
+        if (c.selectedIds && c.selectedIds.length > 0) {
+          supabase.from("daily_entries").select("*").in("id", c.selectedIds).order("date", {
+            ascending: true
+          }).order("bill_no", {
+            ascending: true
+          }).then(({
+            data
+          }) => {
+            if (data) {
+              setDbTrips(data.map((d) => ({
+                id: d.id,
+                date: d.date,
+                vehicle: d.vehicle_no,
+                company: d.company_name,
+                destination: d.destination || "",
+                billNo: d.bill_no,
+                material: d.material,
+                quantity: d.quantity,
+                crusherRate: d.crusher_rate,
+                driverName: d.driver_name || ""
+              })));
+            }
+          });
+        }
       } catch {
       }
     }
   }, []);
   const companies = reactExports.useMemo(() => Array.from(/* @__PURE__ */ new Set([...COMPANIES, ...entries.map((e) => e.company)])), [entries]);
-  const filtered = reactExports.useMemo(() => entries.filter((e) => {
+  const filtered = reactExports.useMemo(() => {
     if (ctx.selectedIds) {
-      return ctx.selectedIds.includes(e.id);
+      return dbTrips;
     }
-    if (!company) return false;
-    if (e.company !== company) return false;
-    const d = new Date(e.date);
-    if (ctx.month !== "all" && d.getMonth() !== MONTHS.indexOf(ctx.month)) return false;
-    if (ctx.year && String(d.getFullYear()) !== ctx.year) return false;
-    if (ctx.vehicle !== "all" && e.vehicle !== ctx.vehicle) return false;
-    if (ctx.material && ctx.material !== "all" && e.material !== ctx.material) return false;
-    return true;
-  }), [entries, company, ctx]);
+    const fallbackSource = entries;
+    return fallbackSource.filter((e) => {
+      if (!company) return false;
+      if (e.company !== company) return false;
+      const d = new Date(e.date);
+      if (ctx.month !== "all" && d.getMonth() !== MONTHS.indexOf(ctx.month)) return false;
+      if (ctx.year && String(d.getFullYear()) !== ctx.year) return false;
+      if (ctx.vehicle !== "all" && e.vehicle !== ctx.vehicle) return false;
+      if (ctx.material && ctx.material !== "all" && e.material !== ctx.material) return false;
+      return true;
+    });
+  }, [entries, dbTrips, company, ctx]);
   reactExports.useEffect(() => {
     setRates((prev) => {
       const next = {
@@ -121,32 +148,7 @@ function BillingFormat() {
     }
     setIsPrinting(true);
     try {
-      const element = document.querySelector(".invoice-page");
-      let pdfBlob = null;
-      if (element) {
-        const html2pdf2 = (await import("../_libs/html2pdf.js.mjs").then(function(n) {
-          return n.h;
-        })).default;
-        const opt = {
-          margin: 5,
-          filename: "invoice.pdf",
-          image: {
-            type: "jpeg",
-            quality: 0.98
-          },
-          html2canvas: {
-            scale: 2,
-            useCORS: true
-          },
-          jsPDF: {
-            unit: "mm",
-            format: "a4",
-            orientation: "portrait"
-          }
-        };
-        pdfBlob = await html2pdf2().set(opt).from(element).output("blob");
-      }
-      const b = await addBill({
+      await addBill({
         gstBillNumber: gstNo,
         company,
         address,
@@ -157,9 +159,6 @@ function BillingFormat() {
         subtotal,
         gst
       });
-      if (pdfBlob) {
-        await uploadInvoicePDF(b.id, pdfBlob);
-      }
       navigate({
         to: "/printed-bills"
       });

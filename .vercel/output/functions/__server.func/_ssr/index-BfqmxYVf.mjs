@@ -1,6 +1,6 @@
 import { r as reactExports, j as jsxRuntimeExports } from "../_libs/react.mjs";
 import { d as useNavigate } from "../_libs/tanstack__react-router.mjs";
-import { u as useStore } from "./router-qAY7HeMS.mjs";
+import { u as useStore } from "./router-B5aOr_WX.mjs";
 import { t as toast } from "../_libs/sonner.mjs";
 import { k as Lock, l as Sparkles, L as Layers, X, U as User } from "../_libs/lucide-react.mjs";
 import { m as motion, A as AnimatePresence } from "../_libs/framer-motion.mjs";
@@ -67,15 +67,7 @@ function Landing() {
       /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "mx-auto mb-6 h-16 w-16 rounded-3xl bg-gradient-to-br from-primary to-chart-2 grid place-items-center shadow-xl", children: /* @__PURE__ */ jsxRuntimeExports.jsx(Layers, { className: "h-8 w-8 text-primary-foreground" }) }),
       /* @__PURE__ */ jsxRuntimeExports.jsx("h1", { className: "text-5xl sm:text-6xl font-semibold tracking-tight bg-gradient-to-b from-foreground to-foreground/70 bg-clip-text text-transparent", children: "CrusherFlow" }),
       /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "mt-4 text-lg text-muted-foreground", children: "A premium management system for building material suppliers — daily entries, billing, and GST invoices in one elegant dashboard." }),
-      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "mt-8 flex items-center justify-center gap-3", children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsx("button", { onClick: () => setOpen(true), className: "rounded-2xl bg-primary text-primary-foreground px-6 py-3 text-sm font-semibold shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all", children: "Get Started" }),
-        /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { className: "text-xs text-muted-foreground", children: [
-          "Use ",
-          /* @__PURE__ */ jsxRuntimeExports.jsx("code", { className: "px-1.5 py-0.5 rounded bg-muted", children: "admin" }),
-          " / ",
-          /* @__PURE__ */ jsxRuntimeExports.jsx("code", { className: "px-1.5 py-0.5 rounded bg-muted", children: "admin" })
-        ] })
-      ] })
+      /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "mt-8 flex items-center justify-center gap-3", children: /* @__PURE__ */ jsxRuntimeExports.jsx("button", { onClick: () => setOpen(true), className: "rounded-2xl bg-primary text-primary-foreground px-6 py-3 text-sm font-semibold shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all", children: "Get Started" }) })
     ] }) }),
     /* @__PURE__ */ jsxRuntimeExports.jsx(AnimatePresence, { children: open && /* @__PURE__ */ jsxRuntimeExports.jsx(LoginModal, { onClose: () => setOpen(false), onLogin: (u, p) => {
       if (login(u, p)) {
@@ -94,8 +86,8 @@ function LoginModal({
   onClose,
   onLogin
 }) {
-  const [username, setUsername] = reactExports.useState("admin");
-  const [password, setPassword] = reactExports.useState("admin");
+  const [username, setUsername] = reactExports.useState("");
+  const [password, setPassword] = reactExports.useState("");
   return /* @__PURE__ */ jsxRuntimeExports.jsx(motion.div, { initial: {
     opacity: 0
   }, animate: {
@@ -135,7 +127,7 @@ function LoginModal({
         /* @__PURE__ */ jsxRuntimeExports.jsx("label", { className: "text-xs font-medium text-muted-foreground mb-1.5 block", children: "Username" }),
         /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "relative", children: [
           /* @__PURE__ */ jsxRuntimeExports.jsx(User, { className: "h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx("input", { value: username, onChange: (e) => setUsername(e.target.value), className: "glass-input w-full rounded-2xl pl-10 pr-4 py-3 text-sm outline-none focus:ring-2 focus:ring-primary/40", placeholder: "admin" })
+          /* @__PURE__ */ jsxRuntimeExports.jsx("input", { value: username, onChange: (e) => setUsername(e.target.value), className: "glass-input w-full rounded-2xl pl-10 pr-4 py-3 text-sm outline-none focus:ring-2 focus:ring-primary/40", placeholder: "Phone number" })
         ] })
       ] }),
       /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [

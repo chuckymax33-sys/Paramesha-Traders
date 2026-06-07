@@ -25,7 +25,7 @@ import "../_libs/iceberg-js.mjs";
 import "../_libs/supabase__auth-js.mjs";
 import "tslib";
 import "../_libs/supabase__functions-js.mjs";
-const appCss = "/assets/styles-xB5WUn6d.css";
+const appCss = "/assets/styles-kD-xvA9G.css";
 function reportLovableError(error, context = {}) {
   if (typeof window === "undefined") return;
   window.__lovableEvents?.captureException?.(
@@ -47,13 +47,7 @@ const supabaseAnonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYm
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
 const VEHICLES = ["AP24TB8555", "TS07UK5333"];
 const MATERIALS = ["Robo", "20MM", "12MM", "6MM", "40MM"];
-const COMPANIES = [
-  "Sri Sai Constructions",
-  "Lakshmi Builders",
-  "Vasavi Infra",
-  "Krishna Cement Works",
-  "Anjaneya Projects"
-];
+const COMPANIES = [];
 const MONTHS = [
   "January",
   "February",
@@ -70,11 +64,13 @@ const MONTHS = [
 ];
 const Ctx = reactExports.createContext(null);
 function StoreProvider({ children }) {
-  const [authed, setAuthed] = reactExports.useState(false);
+  const [authed, setAuthed] = reactExports.useState(() => {
+    if (typeof window !== "undefined") return localStorage.getItem("cf_authed") === "true";
+    return false;
+  });
   const [entries, setEntries] = reactExports.useState([]);
-  const [bills, setBills] = reactExports.useState([]);
   const loadEntries = async () => {
-    const { data, error } = await supabase.from("daily_entries").select("*").order("created_at", { ascending: false });
+    const { data, error } = await supabase.from("daily_entries").select("*").order("created_at", { ascending: false }).limit(10);
     if (error) {
       console.error(error);
       toast.error("Failed to load entries");
@@ -89,37 +85,23 @@ function StoreProvider({ children }) {
       billNo: d.bill_no,
       material: d.material,
       quantity: d.quantity,
-      crusherRate: d.crusher_rate
-    })));
-  };
-  const loadBills = async () => {
-    const { data, error } = await supabase.from("printed_bills").select("*").order("created_at", { ascending: false });
-    if (error) {
-      console.error(error);
-      toast.error("Failed to load bills");
-      return;
-    }
-    setBills(data.map((d) => ({
-      id: d.id,
-      gstBillNumber: d.gst_bill_no,
-      company: d.company_name,
-      address: d.address || "",
-      partyGstinNo: d.party_gstin_no || "",
-      printDate: d.printed_at,
-      totalAmount: d.grand_total,
-      rows: d.items,
-      subtotal: d.subtotal,
-      gst: d.gst_amount
+      crusherRate: d.crusher_rate,
+      driverName: d.driver_name || ""
     })));
   };
   reactExports.useEffect(() => {
     loadEntries();
-    loadBills();
   }, []);
+  reactExports.useEffect(() => {
+    if (typeof window !== "undefined") {
+      if (authed) localStorage.setItem("cf_authed", "true");
+      else localStorage.removeItem("cf_authed");
+    }
+  }, [authed]);
   const value = {
     authed,
     login: (u, p) => {
-      const ok = u.trim().toLowerCase() === "admin" && p === "admin";
+      const ok = u.trim() === "9959315999" && p === "0126";
       if (ok) setAuthed(true);
       return ok;
     },
@@ -135,7 +117,8 @@ function StoreProvider({ children }) {
         bill_no: e.billNo,
         material: e.material,
         quantity: e.quantity,
-        crusher_rate: e.crusherRate
+        crusher_rate: e.crusherRate,
+        driver_name: e.driverName || ""
       });
       if (error) throw error;
       await loadEntries();
@@ -149,7 +132,8 @@ function StoreProvider({ children }) {
         bill_no: e.billNo,
         material: e.material,
         quantity: e.quantity,
-        crusher_rate: e.crusherRate
+        crusher_rate: e.crusherRate,
+        driver_name: e.driverName || ""
       }).eq("id", id);
       if (error) throw error;
       await loadEntries();
@@ -159,8 +143,6 @@ function StoreProvider({ children }) {
       if (error) throw error;
       await loadEntries();
     },
-    bills,
-    loadBills,
     addBill: async (b) => {
       const { data, error } = await supabase.from("printed_bills").insert({
         gst_bill_no: b.gstBillNumber,
@@ -176,7 +158,6 @@ function StoreProvider({ children }) {
         printed_at: b.printDate
       }).select().single();
       if (error) throw error;
-      await loadBills();
       return {
         id: data.id,
         gstBillNumber: data.gst_bill_no,
@@ -192,14 +173,6 @@ function StoreProvider({ children }) {
     },
     deleteBill: async (id) => {
       const { error } = await supabase.from("printed_bills").delete().eq("id", id);
-      if (error) throw error;
-      await loadBills();
-    },
-    uploadInvoicePDF: async (id, blob) => {
-      const { error } = await supabase.storage.from("invoices").upload(`${id}.pdf`, blob, {
-        upsert: true,
-        contentType: "application/pdf"
-      });
       if (error) throw error;
     }
   };
@@ -291,7 +264,7 @@ function RootComponent() {
     /* @__PURE__ */ jsxRuntimeExports.jsx(Toaster, { position: "top-right" })
   ] }) });
 }
-const $$splitComponentImporter$5 = () => import("./search-CURHG1dv.mjs");
+const $$splitComponentImporter$5 = () => import("./search-Ckjr20w9.mjs");
 const Route$5 = createFileRoute("/search")({
   head: () => ({
     meta: [{
@@ -300,7 +273,7 @@ const Route$5 = createFileRoute("/search")({
   }),
   component: lazyRouteComponent($$splitComponentImporter$5, "component")
 });
-const $$splitComponentImporter$4 = () => import("./printed-bills-dVLvJ9G0.mjs");
+const $$splitComponentImporter$4 = () => import("./printed-bills-DzboRUA-.mjs");
 const Route$4 = createFileRoute("/printed-bills")({
   head: () => ({
     meta: [{
@@ -309,7 +282,7 @@ const Route$4 = createFileRoute("/printed-bills")({
   }),
   component: lazyRouteComponent($$splitComponentImporter$4, "component")
 });
-const $$splitComponentImporter$3 = () => import("./daily-entry-6TRbRn4M.mjs");
+const $$splitComponentImporter$3 = () => import("./daily-entry-CnUFW9c_.mjs");
 const Route$3 = createFileRoute("/daily-entry")({
   head: () => ({
     meta: [{
@@ -318,7 +291,7 @@ const Route$3 = createFileRoute("/daily-entry")({
   }),
   component: lazyRouteComponent($$splitComponentImporter$3, "component")
 });
-const $$splitComponentImporter$2 = () => import("./billing-format-fp4vuuL9.mjs");
+const $$splitComponentImporter$2 = () => import("./billing-format-CsQ82qRb.mjs");
 const Route$2 = createFileRoute("/billing-format")({
   head: () => ({
     meta: [{
@@ -327,7 +300,7 @@ const Route$2 = createFileRoute("/billing-format")({
   }),
   component: lazyRouteComponent($$splitComponentImporter$2, "component")
 });
-const $$splitComponentImporter$1 = () => import("./billing-R3d3W4-r.mjs");
+const $$splitComponentImporter$1 = () => import("./billing-3na5Km4L.mjs");
 const Route$1 = createFileRoute("/billing")({
   head: () => ({
     meta: [{
@@ -336,7 +309,7 @@ const Route$1 = createFileRoute("/billing")({
   }),
   component: lazyRouteComponent($$splitComponentImporter$1, "component")
 });
-const $$splitComponentImporter = () => import("./index-D3UnN-xi.mjs");
+const $$splitComponentImporter = () => import("./index-BfqmxYVf.mjs");
 const Route = createFileRoute("/")({
   head: () => ({
     meta: [{

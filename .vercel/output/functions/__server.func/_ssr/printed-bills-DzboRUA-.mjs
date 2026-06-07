@@ -1,7 +1,7 @@
 import { r as reactExports, j as jsxRuntimeExports } from "../_libs/react.mjs";
-import { A as AppLayout } from "./AppLayout-BUEmiuLK.mjs";
-import { u as useStore, s as supabase } from "./router-qAY7HeMS.mjs";
-import { P as ParameshaInvoiceTemplate } from "./ParameshaInvoiceTemplate-BHOdDfSE.mjs";
+import { A as AppLayout } from "./AppLayout-BhNDFMbx.mjs";
+import { u as useStore, s as supabase } from "./router-B5aOr_WX.mjs";
+import { P as ParameshaInvoiceTemplate } from "./ParameshaInvoiceTemplate-C6B51PtT.mjs";
 import { t as toast } from "../_libs/sonner.mjs";
 import { S as Search, F as FileText, E as Eye, D as Download, T as Trash2, X } from "../_libs/lucide-react.mjs";
 import { m as motion, A as AnimatePresence } from "../_libs/framer-motion.mjs";
@@ -34,19 +34,83 @@ import "../_libs/motion-dom.mjs";
 import "../_libs/motion-utils.mjs";
 function PrintedBills() {
   const {
-    bills,
     deleteBill
   } = useStore();
   const [q, setQ] = reactExports.useState("");
   const [viewing, setViewing] = reactExports.useState(null);
   const [isPrinting, setIsPrinting] = reactExports.useState(false);
-  const downloadPDF = (b) => {
+  const [dbBills, setDbBills] = reactExports.useState([]);
+  const [isLoading, setIsLoading] = reactExports.useState(true);
+  const fetchBills = async () => {
+    setIsLoading(true);
     const {
       data
-    } = supabase.storage.from("invoices").getPublicUrl(`${b.id}.pdf`);
-    window.open(data.publicUrl, "_blank");
+    } = await supabase.from("printed_bills").select("*").order("created_at", {
+      ascending: false
+    });
+    if (data) {
+      setDbBills(data.map((d) => ({
+        id: d.id,
+        gstBillNumber: d.gst_bill_no,
+        company: d.company_name,
+        address: d.address || "",
+        partyGstinNo: d.party_gstin_no || "",
+        printDate: d.printed_at,
+        totalAmount: d.grand_total,
+        rows: d.items,
+        subtotal: d.subtotal,
+        gst: d.gst_amount
+      })));
+    }
+    setIsLoading(false);
   };
-  const filtered = reactExports.useMemo(() => bills.filter((b) => !q || b.gstBillNumber.toLowerCase().includes(q.toLowerCase()) || b.company.toLowerCase().includes(q.toLowerCase())), [bills, q]);
+  reactExports.useEffect(() => {
+    fetchBills();
+  }, []);
+  const downloadPDF = async (b) => {
+    setIsPrinting(true);
+    setViewing(b);
+    setTimeout(async () => {
+      try {
+        const element = document.querySelector(".invoice-shell");
+        if (element) {
+          const html2pdf = (await import("../_libs/html2pdf.js.mjs").then(function(n) {
+            return n.h;
+          })).default;
+          const opt = {
+            margin: 5,
+            filename: `invoice-${b.gstBillNumber || b.id.substring(0, 5)}.pdf`,
+            image: {
+              type: "jpeg",
+              quality: 0.98
+            },
+            html2canvas: {
+              scale: 2,
+              useCORS: true
+            },
+            pagebreak: {
+              mode: "css",
+              before: ".html2pdf__page-break"
+            },
+            jsPDF: {
+              unit: "mm",
+              format: "a4",
+              orientation: "portrait"
+            }
+          };
+          await html2pdf().set(opt).from(element).save();
+          toast.success("PDF downloaded successfully!");
+        }
+      } catch (err) {
+        console.error(err);
+        toast.error("Failed to generate PDF");
+      } finally {
+        setViewing(null);
+        setIsPrinting(false);
+      }
+    }, 400);
+  };
+  const filtered = reactExports.useMemo(() => dbBills.filter((b) => !q || b.gstBillNumber.toLowerCase().includes(q.toLowerCase()) || b.company.toLowerCase().includes(q.toLowerCase())), [dbBills, q]);
   return /* @__PURE__ */ jsxRuntimeExports.jsxs(AppLayout, { title: "Printed Bills", subtitle: "Reprint or download any past GST invoice.", children: [
     /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "glass-card p-4 sm:p-5 mb-6 print:hidden", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "relative", children: [
       /* @__PURE__ */ jsxRuntimeExports.jsx(Search, { className: "h-4 w-4 absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" }),
@@ -94,12 +158,16 @@ function PrintedBills() {
           /* @__PURE__ */ jsxRuntimeExports.jsx(Download, { className: "h-3.5 w-3.5" }),
           " PDF"
         ] }),
-        /* @__PURE__ */ jsxRuntimeExports.jsxs("button", { disabled: isPrinting, onClick: () => {
+        /* @__PURE__ */ jsxRuntimeExports.jsxs("button", { disabled: isPrinting, onClick: async () => {
           if (window.confirm("Are you sure you want to delete this bill? This cannot be undone.")) {
-            deleteBill(b.id).then(() => toast.success("Bill deleted")).catch((err) => {
+            try {
+              await deleteBill(b.id);
+              fetchBills();
+              toast.success("Bill deleted");
+            } catch (err) {
               console.error(err);
               toast.error("Failed to delete bill");
-            });
+            }
           }
         }, className: "glass-button rounded-xl px-3 py-2 text-xs font-semibold inline-flex items-center gap-1.5 text-red-500 hover:text-red-600 disabled:opacity-50", children: [
           /* @__PURE__ */ jsxRuntimeExports.jsx(Trash2, { className: "h-3.5 w-3.5" }),

@@ -85,7 +85,7 @@ function BillingPage() {
               disabled={isLoading}
               onClick={async () => { 
                 setIsLoading(true);
-                let query = supabase.from("daily_entries").select("*").order("date", { ascending: true }).order("bill_no", { ascending: true });
+                let query: any = supabase.from("daily_entries").select("*");
                 
                 if (vehicle !== "all") query = query.eq("vehicle_no", vehicle);
                 if (company !== "all") query = query.eq("company_name", company);
@@ -104,6 +104,8 @@ function BillingPage() {
                     query = query.gte("date", startDate).lte("date", endDate);
                   }
                 }
+
+                query = query.order("date", { ascending: true }).order("bill_no", { ascending: true });
 
                 const { data, error } = await query;
                 if (error) {

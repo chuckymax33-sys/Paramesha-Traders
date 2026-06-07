@@ -1,9 +1,9 @@
 import { r as reactExports, j as jsxRuntimeExports } from "../_libs/react.mjs";
-import { A as AppLayout } from "./AppLayout-BUEmiuLK.mjs";
-import { u as useStore, M as MATERIALS, V as VEHICLES, C as COMPANIES } from "./router-qAY7HeMS.mjs";
+import { A as AppLayout } from "./AppLayout-BhNDFMbx.mjs";
+import { u as useStore, V as VEHICLES, C as COMPANIES, M as MATERIALS } from "./router-B5aOr_WX.mjs";
 import { t as toast } from "../_libs/sonner.mjs";
 import { m as motion, A as AnimatePresence } from "../_libs/framer-motion.mjs";
-import { b as Save, P as Plus, R as RotateCcw, c as Truck, d as Pencil, T as Trash2 } from "../_libs/lucide-react.mjs";
+import { b as Save, c as Plus, R as RotateCcw, d as Truck, P as Pencil, T as Trash2 } from "../_libs/lucide-react.mjs";
 import "../_libs/tanstack__react-router.mjs";
 import "../_libs/tanstack__router-core.mjs";
 import "../_libs/tanstack__history.mjs";
@@ -32,12 +32,13 @@ import "../_libs/supabase__functions-js.mjs";
 import "../_libs/motion-dom.mjs";
 import "../_libs/motion-utils.mjs";
 const empty = {
-  vehicle: VEHICLES[0],
+  vehicle: "",
+  driverName: "",
   date: (/* @__PURE__ */ new Date()).toISOString().slice(0, 10),
   company: "",
   destination: "",
   billNo: "",
-  material: MATERIALS[0],
+  material: "",
   quantity: "",
   crusherRate: ""
 };
@@ -51,13 +52,29 @@ function DailyEntry() {
   const [form, setForm] = reactExports.useState(empty);
   const [editingId, setEditingId] = reactExports.useState(null);
   const [isLoading, setIsLoading] = reactExports.useState(false);
+  reactExports.useEffect(() => {
+    const raw = sessionStorage.getItem("edit_entry");
+    if (raw) {
+      try {
+        const e = JSON.parse(raw);
+        setEditingId(e.id);
+        setForm({
+          ...e,
+          quantity: String(e.quantity),
+          crusherRate: String(e.crusherRate)
+        });
+        sessionStorage.removeItem("edit_entry");
+      } catch (err) {
+      }
+    }
+  }, []);
   const reset = () => {
     setForm(empty);
     setEditingId(null);
   };
   const submit = async (e) => {
     e.preventDefault();
-    if (!form.company || !form.destination || !form.billNo || !form.quantity || !form.crusherRate) {
+    if (!form.vehicle || !form.material || !form.company || !form.destination || !form.billNo || !form.quantity || !form.crusherRate) {
       toast.error("Please fill all fields");
       return;
     }
@@ -65,6 +82,7 @@ function DailyEntry() {
     try {
       const payload = {
         vehicle: form.vehicle,
+        driverName: form.driverName,
         date: form.date,
         company: form.company,
         destination: form.destination,
@@ -92,6 +110,7 @@ function DailyEntry() {
     setEditingId(e.id);
     setForm({
       ...e,
+      driverName: e.driverName || "",
       quantity: String(e.quantity),
       crusherRate: String(e.crusherRate)
     });
@@ -111,6 +130,13 @@ function DailyEntry() {
         }), className: "glass-select", placeholder: "Select or type..." }),
         /* @__PURE__ */ jsxRuntimeExports.jsx("datalist", { id: "vehicles-list", children: VEHICLES.map((v) => /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: v }, v)) })
       ] }),
+      /* @__PURE__ */ jsxRuntimeExports.jsxs(Field, { label: "Driver Name", children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx("input", { list: "drivers-list", value: form.driverName, onChange: (e) => setForm({
+          ...form,
+          driverName: e.target.value
+        }), className: "glass-select", placeholder: "e.g. Raju" }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx("datalist", { id: "drivers-list", children: Array.from(new Set(entries.map((e) => e.driverName).filter(Boolean))).map((d) => /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: d }, d)) })
+      ] }),
       /* @__PURE__ */ jsxRuntimeExports.jsx(Field, { label: "Date", children: /* @__PURE__ */ jsxRuntimeExports.jsx("input", { type: "date", value: form.date, onChange: (e) => setForm({
         ...form,
         date: e.target.value
@@ -122,10 +148,13 @@ function DailyEntry() {
         }), className: "glass-select", placeholder: "e.g. Sri Sai Constructions" }),
         /* @__PURE__ */ jsxRuntimeExports.jsx("datalist", { id: "companies-list", children: Array.from(/* @__PURE__ */ new Set([...COMPANIES, ...entries.map((e) => e.company)])).map((c) => /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: c }, c)) })
       ] }),
-      /* @__PURE__ */ jsxRuntimeExports.jsx(Field, { label: "Destination", children: /* @__PURE__ */ jsxRuntimeExports.jsx("input", { value: form.destination, onChange: (e) => setForm({
-        ...form,
-        destination: e.target.value
-      }), className: "glass-select", placeholder: "e.g. Hyderabad" }) }),
+      /* @__PURE__ */ jsxRuntimeExports.jsxs(Field, { label: "Destination", children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx("input", { list: "destinations-list", value: form.destination, onChange: (e) => setForm({
+          ...form,
+          destination: e.target.value
+        }), className: "glass-select", placeholder: "e.g. Hyderabad" }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx("datalist", { id: "destinations-list", children: Array.from(new Set(entries.map((e) => e.destination).filter(Boolean))).map((d) => /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: d }, d)) })
+      ] }),
       /* @__PURE__ */ jsxRuntimeExports.jsx(Field, { label: "Bill No", children: /* @__PURE__ */ jsxRuntimeExports.jsx("input", { value: form.billNo, onChange: (e) => setForm({
         ...form,
         billNo: e.target.value
@@ -170,7 +199,7 @@ function DailyEntry() {
         ] })
       ] }),
       /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "overflow-x-auto", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("table", { className: "w-full text-sm", children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsx("thead", { className: "text-left text-xs uppercase tracking-wide text-muted-foreground bg-white/40", children: /* @__PURE__ */ jsxRuntimeExports.jsx("tr", { children: ["Date", "Vehicle", "Company", "Destination", "Bill No", "Material", "Qty", "Rate", "Actions"].map((h) => /* @__PURE__ */ jsxRuntimeExports.jsx("th", { className: "px-5 py-3 font-medium", children: h }, h)) }) }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx("thead", { className: "text-left text-xs uppercase tracking-wide text-muted-foreground bg-white/40", children: /* @__PURE__ */ jsxRuntimeExports.jsx("tr", { children: ["Date", "Vehicle", "Driver", "Company", "Destination", "Bill No", "Material", "Qty", "Rate", "Actions"].map((h) => /* @__PURE__ */ jsxRuntimeExports.jsx("th", { className: "px-5 py-3 font-medium", children: h }, h)) }) }),
         /* @__PURE__ */ jsxRuntimeExports.jsxs("tbody", { children: [
           /* @__PURE__ */ jsxRuntimeExports.jsx(AnimatePresence, { initial: false, children: entries.map((e) => /* @__PURE__ */ jsxRuntimeExports.jsxs(motion.tr, { layout: true, initial: {
             opacity: 0,
@@ -183,6 +212,7 @@ function DailyEntry() {
           }, className: "border-t border-white/40 hover:bg-white/40 transition-colors", children: [
             /* @__PURE__ */ jsxRuntimeExports.jsx("td", { className: "px-5 py-3 whitespace-nowrap", children: e.date }),
             /* @__PURE__ */ jsxRuntimeExports.jsx("td", { className: "px-5 py-3 whitespace-nowrap font-medium", children: e.vehicle }),
+            /* @__PURE__ */ jsxRuntimeExports.jsx("td", { className: "px-5 py-3", children: e.driverName || "-" }),
             /* @__PURE__ */ jsxRuntimeExports.jsx("td", { className: "px-5 py-3", children: e.company }),
             /* @__PURE__ */ jsxRuntimeExports.jsx("td", { className: "px-5 py-3", children: e.destination }),
             /* @__PURE__ */ jsxRuntimeExports.jsx("td", { className: "px-5 py-3", children: e.billNo }),
@@ -207,7 +237,7 @@ function DailyEntry() {
               }, className: "glass-button h-9 w-9 rounded-xl grid place-items-center text-destructive", "aria-label": "Delete", children: /* @__PURE__ */ jsxRuntimeExports.jsx(Trash2, { className: "h-4 w-4" }) })
             ] }) })
           ] }, e.id)) }),
-          entries.length === 0 && /* @__PURE__ */ jsxRuntimeExports.jsx("tr", { children: /* @__PURE__ */ jsxRuntimeExports.jsx("td", { colSpan: 9, className: "px-5 py-12 text-center text-muted-foreground", children: "No entries yet — add your first trip above." }) })
+          entries.length === 0 && /* @__PURE__ */ jsxRuntimeExports.jsx("tr", { children: /* @__PURE__ */ jsxRuntimeExports.jsx("td", { colSpan: 10, className: "px-5 py-12 text-center text-muted-foreground", children: "No entries yet — add your first trip above." }) })
         ] })
       ] }) })
     ] })
