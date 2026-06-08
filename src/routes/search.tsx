@@ -21,8 +21,9 @@ function SearchPage() {
   const [vehicle, setVehicle] = useState("all");
   const [company, setCompany] = useState("");
   const [date, setDate] = useState("");
+  const [billNo, setBillNo] = useState("");
   const [page, setPage] = useState(0);
-  const [filters, setFilters] = useState<{ vehicle: string; company: string; date: string } | null>(null);
+  const [filters, setFilters] = useState<{ vehicle: string; company: string; date: string; billNo: string } | null>(null);
 
   const companies = useMemo(() => Array.from(new Set([...COMPANIES, ...entries.map(e => e.company)])), [entries]);
 
@@ -53,10 +54,10 @@ function SearchPage() {
   const pages = Math.max(1, Math.ceil(results.length / PAGE));
   const paged = results.slice(page * PAGE, (page + 1) * PAGE);
 
-  const clear = () => { setVehicle("all"); setCompany(""); setDate(""); setPage(0); setFilters(null); setDbResults([]); };
+  const clear = () => { setVehicle("all"); setCompany(""); setDate(""); setBillNo(""); setPage(0); setFilters(null); setDbResults([]); };
   
   const handleSearch = async () => {
-    setFilters({ vehicle, company, date });
+    setFilters({ vehicle, company, date, billNo });
     setPage(0);
     setIsSearching(true);
 
@@ -65,6 +66,7 @@ function SearchPage() {
     if (vehicle !== "all") query = query.eq("vehicle_no", vehicle);
     if (company) query = query.ilike("company_name", `%${company}%`);
     if (date) query = query.eq("date", date);
+    if (billNo) query = query.ilike("bill_no", `%${billNo}%`);
     
     const { data, error } = await query.limit(500); // safety limit
     
@@ -88,7 +90,7 @@ function SearchPage() {
   return (
     <AppLayout title="Search" subtitle="Find any trip in seconds.">
       <motion.section initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="glass-card p-6 sm:p-8 mb-6">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-4">
           <Field label="Vehicle Number">
             <select value={vehicle} onChange={(e) => { setVehicle(e.target.value); setPage(0); }} className="glass-select">
               <option value="all">All vehicles</option>
@@ -101,6 +103,9 @@ function SearchPage() {
           </Field>
           <Field label="Date">
             <input type="date" value={date} onChange={(e) => { setDate(e.target.value); setPage(0); }} className="glass-select" />
+          </Field>
+          <Field label="Bill No">
+            <input type="text" value={billNo} onChange={(e) => { setBillNo(e.target.value); setPage(0); }} className="glass-select" placeholder="Search bill no..." />
           </Field>
           <div className="flex items-end gap-2">
             <button onClick={handleSearch} className="flex-1 rounded-2xl bg-primary text-primary-foreground px-4 py-3 text-sm font-semibold inline-flex items-center justify-center gap-2 shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all">
