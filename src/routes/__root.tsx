@@ -64,10 +64,13 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "CrusherFlow — Building Material Supplier Management" },
+      { title: "Shanku Chakram — Building Material Supplier Management" },
       { name: "description", content: "Modern liquid-glass dashboard to manage daily entries, billing, and printed bills for building material suppliers." },
     ],
-    links: [{ rel: "stylesheet", href: appCss }],
+    links: [
+      { rel: "icon", href: "/pt.logo.png" },
+      { rel: "stylesheet", href: appCss }
+    ],
   }),
   shellComponent: RootShell,
   component: RootComponent,

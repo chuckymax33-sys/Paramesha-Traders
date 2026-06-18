@@ -19,10 +19,8 @@ export function GlassNav() {
     <header className="glass-nav fixed top-0 inset-x-0 z-40">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 h-16 flex items-center gap-3">
         <Link to="/daily-entry" className="flex items-center gap-2 mr-2">
-          <div className="h-9 w-9 rounded-2xl bg-gradient-to-br from-primary to-chart-2 grid place-items-center shadow-md">
-            <Layers className="h-5 w-5 text-primary-foreground" />
-          </div>
-          <span className="font-semibold tracking-tight hidden sm:inline">CrusherFlow</span>
+          <img src="/pt.logo.png" alt="Shanku Chakram Logo" className="h-12 w-auto object-contain mix-blend-multiply" />
+          <span className="font-semibold tracking-tight hidden sm:inline">Shanku Chakram</span>
         </Link>
 
         <nav className="flex-1 overflow-x-auto">

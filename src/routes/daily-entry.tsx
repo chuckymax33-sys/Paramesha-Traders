@@ -7,7 +7,7 @@ import { MATERIALS, VEHICLES, COMPANIES, useStore, type Entry } from "@/lib/stor
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/daily-entry")({
-  head: () => ({ meta: [{ title: "Daily Entry — CrusherFlow" }] }),
+  head: () => ({ meta: [{ title: "Daily Entry — Shanku Chakram" }] }),
   component: DailyEntry,
 });
 

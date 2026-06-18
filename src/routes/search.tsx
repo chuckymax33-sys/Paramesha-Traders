@@ -9,7 +9,7 @@ import { toast } from "sonner";
 import { useNavigate } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/search")({
-  head: () => ({ meta: [{ title: "Search — CrusherFlow" }] }),
+  head: () => ({ meta: [{ title: "Search — Shanku Chakram" }] }),
   component: SearchPage,
 });
 

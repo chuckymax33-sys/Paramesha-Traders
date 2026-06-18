@@ -178,10 +178,19 @@ export default function ParameshaInvoiceTemplate({
     window.print();
   };
 
-  const ITEMS_PER_PAGE = 15;
+  const ITEMS_PER_PAGE_FIRST = 15;
+  const ITEMS_PER_PAGE_SUBSEQUENT = 30;
   const chunks = [];
-  for (let i = 0; i < enrichedItems.length; i += ITEMS_PER_PAGE) {
-    chunks.push(enrichedItems.slice(i, i + ITEMS_PER_PAGE));
+  let currentIndex = 0;
+  
+  while (currentIndex < enrichedItems.length) {
+    if (chunks.length === 0) {
+      chunks.push(enrichedItems.slice(0, ITEMS_PER_PAGE_FIRST));
+      currentIndex += ITEMS_PER_PAGE_FIRST;
+    } else {
+      chunks.push(enrichedItems.slice(currentIndex, currentIndex + ITEMS_PER_PAGE_SUBSEQUENT));
+      currentIndex += ITEMS_PER_PAGE_SUBSEQUENT;
+    }
   }
   if (chunks.length === 0) chunks.push([]);
 
@@ -295,7 +304,9 @@ export default function ParameshaInvoiceTemplate({
 
             <tbody>
               {chunk.map((item, localIndex) => {
-                const globalIndex = pageIndex * ITEMS_PER_PAGE + localIndex;
+                const globalIndex = pageIndex === 0 
+                  ? localIndex 
+                  : ITEMS_PER_PAGE_FIRST + (pageIndex - 1) * ITEMS_PER_PAGE_SUBSEQUENT + localIndex;
                 return (
                   <tr key={`${item.tripSheetNo}-${globalIndex}`}>
                     <td className="center">{globalIndex + 1}.</td>

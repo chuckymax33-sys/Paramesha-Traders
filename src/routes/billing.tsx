@@ -8,7 +8,7 @@ import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/billing")({
-  head: () => ({ meta: [{ title: "Billing — CrusherFlow" }] }),
+  head: () => ({ meta: [{ title: "Billing — Shanku Chakram" }] }),
   component: BillingPage,
 });
 

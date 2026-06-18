@@ -11,7 +11,7 @@ import { supabase } from "@/lib/supabase";
 import { type Entry } from "@/lib/store";
 
 export const Route = createFileRoute("/billing-format")({
-  head: () => ({ meta: [{ title: "Billing Format — CrusherFlow" }] }),
+  head: () => ({ meta: [{ title: "Billing Format — Shanku Chakram" }] }),
   component: BillingFormat,
 });
 

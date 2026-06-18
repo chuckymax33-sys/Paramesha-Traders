@@ -8,8 +8,8 @@ import { toast } from "sonner";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "CrusherFlow — Sign in" },
-      { name: "description", content: "Admin sign-in for the CrusherFlow building material supplier dashboard." },
+      { title: "Shanku Chakram — Sign in" },
+      { name: "description", content: "Admin sign-in for the Shanku Chakram building material supplier dashboard." },
     ],
   }),
   component: Landing,
@@ -53,11 +53,9 @@ function Landing() {
             <Sparkles className="h-3.5 w-3.5 text-primary" />
             Apple-inspired liquid glass experience
           </div>
-          <div className="mx-auto mb-6 h-16 w-16 rounded-3xl bg-gradient-to-br from-primary to-chart-2 grid place-items-center shadow-xl">
-            <Layers className="h-8 w-8 text-primary-foreground" />
-          </div>
+          <img src="/pt.logo.png" alt="Shanku Chakram Logo" className="mx-auto mb-4 h-36 sm:h-48 w-auto object-contain mix-blend-multiply" />
           <h1 className="text-5xl sm:text-6xl font-semibold tracking-tight bg-gradient-to-b from-foreground to-foreground/70 bg-clip-text text-transparent">
-            CrusherFlow
+            Shanku Chakram
           </h1>
           <p className="mt-4 text-lg text-muted-foreground">
             A premium management system for building material suppliers — daily entries, billing, and GST invoices in one elegant dashboard.

@@ -8,7 +8,7 @@ import ParameshaInvoiceTemplate from "@/components/ParameshaInvoiceTemplate";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/printed-bills")({
-  head: () => ({ meta: [{ title: "Printed Bills — CrusherFlow" }] }),
+  head: () => ({ meta: [{ title: "Printed Bills — Shanku Chakram" }] }),
   component: PrintedBills,
 });
 
