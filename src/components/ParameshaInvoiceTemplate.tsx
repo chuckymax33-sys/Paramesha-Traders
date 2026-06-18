@@ -140,9 +140,10 @@ export default function ParameshaInvoiceTemplate({
 
   const enrichedItems = useMemo(
     () =>
-      items.map((item) => ({
+      items.map((item, index) => ({
         ...item,
         amount: item.qty * item.rate,
+        globalIndex: index,
       })),
     [items]
   );
@@ -179,35 +180,51 @@ export default function ParameshaInvoiceTemplate({
   };
 
   const ITEMS_PER_PAGE_FIRST = 15;
-  const ITEMS_PER_PAGE_SUBSEQUENT = 30;
+  const ITEMS_PER_PAGE_MIDDLE = 30;
+  const ITEMS_PER_PAGE_LAST = 20;
+
   const chunks = [];
-  let currentIndex = 0;
+  let remaining = [...enrichedItems];
   
-  while (currentIndex < enrichedItems.length) {
-    if (chunks.length === 0) {
-      chunks.push(enrichedItems.slice(0, ITEMS_PER_PAGE_FIRST));
-      currentIndex += ITEMS_PER_PAGE_FIRST;
-    } else {
-      chunks.push(enrichedItems.slice(currentIndex, currentIndex + ITEMS_PER_PAGE_SUBSEQUENT));
-      currentIndex += ITEMS_PER_PAGE_SUBSEQUENT;
+  if (remaining.length === 0) {
+    chunks.push([]);
+  } else {
+    while (remaining.length > 0) {
+      if (chunks.length === 0) {
+        if (remaining.length <= ITEMS_PER_PAGE_FIRST) {
+          chunks.push(remaining);
+          remaining = [];
+        } else {
+          chunks.push(remaining.slice(0, ITEMS_PER_PAGE_FIRST));
+          remaining = remaining.slice(ITEMS_PER_PAGE_FIRST);
+        }
+      } else {
+        if (remaining.length <= ITEMS_PER_PAGE_LAST) {
+          chunks.push(remaining);
+          remaining = [];
+        } else if (remaining.length <= ITEMS_PER_PAGE_MIDDLE) {
+          const take = remaining.length - 5;
+          chunks.push(remaining.slice(0, take));
+          remaining = remaining.slice(take);
+        } else {
+          chunks.push(remaining.slice(0, ITEMS_PER_PAGE_MIDDLE));
+          remaining = remaining.slice(ITEMS_PER_PAGE_MIDDLE);
+        }
+      }
     }
   }
-  if (chunks.length === 0) chunks.push([]);
 
   return (
     <div className="invoice-shell" ref={printRef}>
       {chunks.map((chunk, pageIndex) => (
         <div 
           key={pageIndex} 
-          className="html2pdf__page-break" 
-          style={{ paddingTop: pageIndex > 0 ? '10mm' : '0' }}
+          className={pageIndex < chunks.length - 1 ? "print-page-break" : ""} 
+          style={{ padding: '5mm 0' }}
         >
           <div 
             className="invoice-page" 
-            style={{ 
-              marginBottom: pageIndex < chunks.length - 1 ? '20px' : '0',
-              minHeight: pageIndex > 0 ? '277mm' : '287mm'
-            }}
+            style={{ minHeight: '280mm' }}
           >
             {pageIndex === 0 && (
             <>
@@ -304,9 +321,7 @@ export default function ParameshaInvoiceTemplate({
 
             <tbody>
               {chunk.map((item, localIndex) => {
-                const globalIndex = pageIndex === 0 
-                  ? localIndex 
-                  : ITEMS_PER_PAGE_FIRST + (pageIndex - 1) * ITEMS_PER_PAGE_SUBSEQUENT + localIndex;
+                const globalIndex = item.globalIndex;
                 return (
                   <tr key={`${item.tripSheetNo}-${globalIndex}`}>
                     <td className="center">{globalIndex + 1}.</td>
@@ -447,7 +462,7 @@ export default function ParameshaInvoiceTemplate({
 
         .invoice-page {
           width: 200mm;
-          min-height: 287mm;
+          min-height: 280mm;
           margin: 0 auto;
           background: white;
           border: 4px solid #24336f;
@@ -775,8 +790,9 @@ export default function ParameshaInvoiceTemplate({
             margin: 0 !important;
             overflow: hidden !important;
           }
-          .html2pdf__page-break {
+          .print-page-break {
             page-break-after: always;
+            break-after: page;
           }
           .invoice-page {
             border: none !important;
