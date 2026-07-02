@@ -149,7 +149,8 @@ export default function ParameshaInvoiceTemplate({
   );
 
   const subtotal = useMemo(
-    () => enrichedItems.reduce((sum, item) => sum + item.amount, 0),
+    () =>
+      enrichedItems.reduce((sum, item) => sum + Math.round(item.amount), 0),
     [enrichedItems]
   );
 

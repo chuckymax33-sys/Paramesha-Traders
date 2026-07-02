@@ -102,9 +102,10 @@ function BillingFormat() {
     });
   }, [filtered, rates]);
 
-  const subtotal = rows.reduce((s, r) => s + (r.rate * r.qty), 0);
+  const subtotal = rows.reduce((s, r) => s + Math.round(r.rate * r.qty), 0);
   const gst = subtotal * 0.05; // 2.5% CGST + 2.5% SGST
   const grand = subtotal + gst;
+
 
   const handleSave = async () => {
     if (!company) { toast.error("Please enter a company name"); return; }
