@@ -180,8 +180,8 @@ export default function ParameshaInvoiceTemplate({
   };
 
   const ITEMS_PER_PAGE_FIRST = 15;
-  const ITEMS_PER_PAGE_MIDDLE = 30;
-  const ITEMS_PER_PAGE_LAST = 20;
+  const ITEMS_PER_PAGE_MIDDLE = 25;
+  const ITEMS_PER_PAGE_LAST = 15;
 
   const chunks = [];
   let remaining = [...enrichedItems];
@@ -219,13 +219,9 @@ export default function ParameshaInvoiceTemplate({
       {chunks.map((chunk, pageIndex) => (
         <div 
           key={pageIndex} 
-          className={pageIndex < chunks.length - 1 ? "print-page-break" : ""} 
-          style={{ padding: '5mm 0' }}
+          className={`page-wrapper ${pageIndex < chunks.length - 1 ? "print-page-break" : ""}`} 
         >
-          <div 
-            className="invoice-page" 
-            style={{ minHeight: '280mm' }}
-          >
+          <div className="invoice-page">
             {pageIndex === 0 && (
             <>
               <div className="top-row">
@@ -443,6 +439,18 @@ export default function ParameshaInvoiceTemplate({
           padding: 0; /* removed padding to fit properly inside my layout */
         }
 
+        .page-wrapper {
+          width: 210mm;
+          min-height: 297mm;
+          margin: 0 auto 20px auto;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          background: white;
+          box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+          box-sizing: border-box;
+        }
+
         .actions {
           max-width: 210mm;
           margin: 0 auto 12px auto;
@@ -462,8 +470,7 @@ export default function ParameshaInvoiceTemplate({
 
         .invoice-page {
           width: 200mm;
-          min-height: 280mm;
-          margin: 0 auto;
+          min-height: 287mm;
           background: white;
           border: 4px solid #24336f;
           padding: 6mm 6mm 5mm 6mm;
@@ -782,8 +789,18 @@ export default function ParameshaInvoiceTemplate({
             -webkit-print-color-adjust: exact;
             print-color-adjust: exact;
             background: white !important;
-            padding: 4mm !important;
+            padding: 0 !important;
             box-sizing: border-box !important;
+          }
+          .page-wrapper {
+            padding: 0 !important;
+            margin: 0 !important;
+            box-shadow: none !important;
+            width: 210mm !important;
+            height: 297mm !important;
+            display: flex !important;
+            justify-content: center !important;
+            align-items: center !important;
           }
           .invoice-shell {
             padding: 0 !important;
@@ -795,10 +812,12 @@ export default function ParameshaInvoiceTemplate({
             break-after: page;
           }
           .invoice-page {
-            border: none !important;
-            box-shadow: inset 0 0 0 4px #24336f !important;
-            width: 202mm !important;
-            margin: 0 auto !important;
+            border: 4px solid #24336f !important;
+            box-shadow: none !important;
+            width: 200mm !important;
+            height: 287mm !important;
+            min-height: 287mm !important;
+            margin: 0 !important;
           }
         }
       `}</style>
