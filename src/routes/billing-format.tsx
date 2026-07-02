@@ -5,7 +5,6 @@ import { Printer, Download, FileText, ArrowLeft } from "lucide-react";
 import { AppLayout } from "@/components/AppLayout";
 import { COMPANIES, MONTHS, useStore } from "@/lib/store";
 import { toast } from "sonner";
-import html2pdf from "html2pdf.js";
 import ParameshaInvoiceTemplate, { type InvoiceItem } from "@/components/ParameshaInvoiceTemplate";
 import { supabase } from "@/lib/supabase";
 import { type Entry } from "@/lib/store";
