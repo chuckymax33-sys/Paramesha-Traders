@@ -1,12 +1,23 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Pencil, Trash2, Plus, RotateCcw, Save, Truck } from "lucide-react";
 import { AppLayout } from "@/components/AppLayout";
 import { MATERIALS, VEHICLES, COMPANIES, useStore, type Entry } from "@/lib/store";
 import { toast } from "sonner";
+import { supabase } from "@/lib/supabase";
 
 export const Route = createFileRoute("/daily-entry")({
+  beforeLoad: async () => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw redirect({ to: "/" });
+    } catch (err) {
+      // Re-throw router redirects; on SSR localStorage errors treat as unauthenticated
+      if (err && typeof err === "object" && "isRedirect" in err) throw err;
+      throw redirect({ to: "/" });
+    }
+  },
   head: () => ({ meta: [{ title: "Daily Entry — Shanku Chakram" }] }),
   component: DailyEntry,
 });

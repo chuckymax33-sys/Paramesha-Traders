@@ -5,12 +5,25 @@ import { GlassNav } from "./GlassNav";
 import { useStore } from "@/lib/store";
 
 export function AppLayout({ children, title, subtitle }: { children: ReactNode; title: string; subtitle?: string }) {
-  const { authed } = useStore();
+  const { authed, isAuthLoading } = useStore();
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (!authed) navigate({ to: "/" });
-  }, [authed, navigate]);
+    if (!isAuthLoading && !authed) {
+      navigate({ to: "/" });
+    }
+  }, [authed, isAuthLoading, navigate]);
+
+  if (isAuthLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="flex flex-col items-center gap-3">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+          <p className="text-sm text-muted-foreground animate-pulse font-medium">Checking session...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (!authed) return null;
 

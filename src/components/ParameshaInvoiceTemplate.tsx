@@ -1,6 +1,7 @@
 import React, { useMemo, useRef, useState } from "react";
 
 export type InvoiceItem = {
+  id?: string; // Source daily_entries row id — used for double-billing prevention
   date: string;
   tripSheetNo: string;
   vehicleNo: string;

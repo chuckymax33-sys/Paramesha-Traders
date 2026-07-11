@@ -1,14 +1,23 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, redirect } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { Search as SearchIcon, X, ChevronLeft, ChevronRight, Pencil, Trash2 } from "lucide-react";
+import { Search as SearchIcon, X, ChevronLeft, ChevronRight, Pencil, Trash2, Receipt } from "lucide-react";
 import { AppLayout } from "@/components/AppLayout";
 import { COMPANIES, VEHICLES, useStore, type Entry } from "@/lib/store";
 import { supabase } from "@/lib/supabase";
+import { repository } from "@/lib/repository";
 import { toast } from "sonner";
-import { useNavigate } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/search")({
+  beforeLoad: async () => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw redirect({ to: "/" });
+    } catch (err) {
+      if (err && typeof err === "object" && "isRedirect" in err) throw err;
+      throw redirect({ to: "/" });
+    }
+  },
   head: () => ({ meta: [{ title: "Search — Shanku Chakram" }] }),
   component: SearchPage,
 });
@@ -61,28 +70,10 @@ function SearchPage() {
     setPage(0);
     setIsSearching(true);
 
-    let query = supabase.from("daily_entries").select("*").order("created_at", { ascending: false });
-    
-    if (vehicle !== "all") query = query.eq("vehicle_no", vehicle);
-    if (company) query = query.ilike("company_name", `%${company}%`);
-    if (date) query = query.eq("date", date);
-    if (billNo) query = query.ilike("bill_no", `%${billNo}%`);
-    
-    const { data, error } = await query.limit(500); // safety limit
+    const { data, error } = await repository.searchEntries({ vehicle, company, date, billNo });
     
     if (!error && data) {
-       setDbResults(data.map((d: any) => ({
-          id: d.id,
-          date: d.date,
-          vehicle: d.vehicle_no,
-          company: d.company_name,
-          destination: d.destination || "",
-          billNo: d.bill_no,
-          material: d.material,
-          quantity: d.quantity,
-          crusherRate: d.crusher_rate,
-          driverName: d.driver_name || ""
-       })));
+       setDbResults(data);
     }
     setIsSearching(false);
   };
@@ -140,12 +131,20 @@ function SearchPage() {
                   <td className="px-5 py-3">₹{e.crusherRate}</td>
                   <td className="px-5 py-3">
                     <div className="flex items-center gap-2">
-                      <button onClick={() => handleEdit(e)} className="glass-button h-8 w-8 rounded-xl grid place-items-center text-primary hover:bg-primary/10">
-                        <Pencil className="h-4 w-4" />
-                      </button>
-                      <button onClick={() => handleDelete(e.id)} className="glass-button h-8 w-8 rounded-xl grid place-items-center text-red-500 hover:bg-red-500/10 hover:text-red-600">
-                        <Trash2 className="h-4 w-4" />
-                      </button>
+                      {e.billId ? (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 px-2.5 py-1 text-xs font-medium">
+                          <Receipt className="h-3 w-3" /> Billed
+                        </span>
+                      ) : (
+                        <>
+                          <button onClick={() => handleEdit(e)} className="glass-button h-8 w-8 rounded-xl grid place-items-center text-primary hover:bg-primary/10">
+                            <Pencil className="h-4 w-4" />
+                          </button>
+                          <button onClick={() => handleDelete(e.id)} className="glass-button h-8 w-8 rounded-xl grid place-items-center text-red-500 hover:bg-red-500/10 hover:text-red-600">
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </>
+                      )}
                     </div>
                   </td>
                 </tr>

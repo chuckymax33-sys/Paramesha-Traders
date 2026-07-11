@@ -1,15 +1,25 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, redirect } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { Printer, Download, FileText, ArrowLeft } from "lucide-react";
 import { AppLayout } from "@/components/AppLayout";
-import { COMPANIES, MONTHS, useStore } from "@/lib/store";
+import { COMPANIES, useStore, MONTHS, type PrintedBill } from "@/lib/store";
+import { supabase } from "@/lib/supabase";
+import { repository } from "@/lib/repository";
 import { toast } from "sonner";
 import ParameshaInvoiceTemplate, { type InvoiceItem } from "@/components/ParameshaInvoiceTemplate";
-import { supabase } from "@/lib/supabase";
 import { type Entry } from "@/lib/store";
 
 export const Route = createFileRoute("/billing-format")({
+  beforeLoad: async () => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw redirect({ to: "/" });
+    } catch (err) {
+      if (err && typeof err === "object" && "isRedirect" in err) throw err;
+      throw redirect({ to: "/" });
+    }
+  },
   head: () => ({ meta: [{ title: "Billing Format — Shanku Chakram" }] }),
   component: BillingFormat,
 });
@@ -44,13 +54,9 @@ function BillingFormat() {
         if (c.company && c.company !== "all") setCompany(c.company);
         
         if (c.selectedIds && c.selectedIds.length > 0) {
-           supabase.from("daily_entries").select("*").in("id", c.selectedIds).order("date", { ascending: true }).order("bill_no", { ascending: true }).then(({ data }) => {
+           repository.getEntriesByIds(c.selectedIds).then(({ data }) => {
               if (data) {
-                  setDbTrips(data.map((d: any) => ({
-                    id: d.id, date: d.date, vehicle: d.vehicle_no, company: d.company_name,
-                    destination: d.destination || "", billNo: d.bill_no, material: d.material,
-                    quantity: d.quantity, crusherRate: d.crusher_rate, driverName: d.driver_name || ""
-                  })));
+                  setDbTrips(data);
               }
            });
         }

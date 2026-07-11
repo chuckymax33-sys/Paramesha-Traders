@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 import { useMemo, useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Eye, Printer, Download, Search as SearchIcon, FileText, X, Trash2 } from "lucide-react";
@@ -6,13 +6,22 @@ import { AppLayout } from "@/components/AppLayout";
 import { useStore, type PrintedBill } from "@/lib/store";
 import ParameshaInvoiceTemplate from "@/components/ParameshaInvoiceTemplate";
 import { toast } from "sonner";
+import { supabase } from "@/lib/supabase";
+import { repository } from "@/lib/repository";
 
 export const Route = createFileRoute("/printed-bills")({
+  beforeLoad: async () => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw redirect({ to: "/" });
+    } catch (err) {
+      if (err && typeof err === "object" && "isRedirect" in err) throw err;
+      throw redirect({ to: "/" });
+    }
+  },
   head: () => ({ meta: [{ title: "Printed Bills — Shanku Chakram" }] }),
   component: PrintedBills,
 });
-
-import { supabase } from "@/lib/supabase";
 
 function PrintedBills() {
   const { deleteBill } = useStore();
@@ -22,28 +31,20 @@ function PrintedBills() {
   const [dbBills, setDbBills] = useState<PrintedBill[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  const fetchBills = async () => {
+  const loadBills = async () => {
     setIsLoading(true);
-    const { data } = await supabase.from("printed_bills").select("*").order("created_at", { ascending: false });
-    if (data) {
-      setDbBills(data.map((d: any) => ({
-        id: d.id,
-        gstBillNumber: d.gst_bill_no,
-        company: d.company_name,
-        address: d.address || "",
-        partyGstinNo: d.party_gstin_no || "",
-        printDate: d.printed_at,
-        totalAmount: d.grand_total,
-        rows: d.items,
-        subtotal: d.subtotal,
-        gst: d.gst_amount
-      })));
+    const { data, error } = await repository.getPrintedBills();
+    if (error) {
+      toast.error("Failed to load bills");
+      console.error(error);
+    } else if (data) {
+      setDbBills(data);
     }
     setIsLoading(false);
   };
 
   useEffect(() => {
-    fetchBills();
+    loadBills();
   }, []);
 
   const downloadPDF = async (b: PrintedBill) => {
@@ -134,7 +135,7 @@ function PrintedBills() {
                   if (window.confirm("Are you sure you want to delete this bill? This cannot be undone.")) {
                     try {
                       await deleteBill(b.id);
-                      fetchBills();
+                      loadBills();
                       toast.success("Bill deleted");
                     } catch (err) {
                       console.error(err);

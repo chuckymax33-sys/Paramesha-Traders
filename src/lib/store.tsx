@@ -1,5 +1,8 @@
 import { createContext, useContext, useState, useEffect, type ReactNode } from "react";
 import { supabase } from "./supabase";
+import { createEntryFn, updateEntryFn, deleteEntryFn } from "./api/entries.functions";
+import { createBillFn, deleteBillFn } from "./api/bills.functions";
+import { repository } from "./repository";
 import { toast } from "sonner";
 import { type InvoiceItem } from "@/components/ParameshaInvoiceTemplate";
 
@@ -14,6 +17,7 @@ export type Entry = {
   quantity: number;
   crusherRate: number;
   driverName?: string;
+  billId?: string | null; // null = unbilled, uuid = linked to a printed bill
 };
 
 export type PrintedBill = {
@@ -39,8 +43,9 @@ export const MONTHS = [
 
 type Store = {
   authed: boolean;
-  login: (u: string, p: string) => boolean;
-  logout: () => void;
+  isAuthLoading: boolean;
+  login: (email: string, p: string) => Promise<{ success: boolean; error?: string }>;
+  logout: () => Promise<void>;
   entries: Entry[];
   addEntry: (e: Omit<Entry, "id">) => Promise<void>;
   updateEntry: (id: string, e: Omit<Entry, "id">) => Promise<void>;
@@ -54,112 +59,140 @@ type Store = {
 const Ctx = createContext<Store | null>(null);
 
 export function StoreProvider({ children }: { children: ReactNode }) {
-  const [authed, setAuthed] = useState(() => {
-    if (typeof window !== "undefined") return localStorage.getItem("cf_authed") === "true";
-    return false;
-  });
+  const [authed, setAuthed] = useState(false);
+  const [isAuthLoading, setIsAuthLoading] = useState(true);
   const [entries, setEntries] = useState<Entry[]>([]);
 
-
   const loadEntries = async () => {
-    const { data, error } = await supabase.from("daily_entries").select("*").order("created_at", { ascending: false }).limit(10);
+    const { data, error } = await repository.getRecentEntries(10);
     if (error) {
       console.error(error);
       toast.error("Failed to load entries");
       return;
     }
-    setEntries(data.map((d: any) => ({
-      id: d.id,
-      date: d.date,
-      vehicle: d.vehicle_no,
-      company: d.company_name,
-      destination: d.destination || "",
-      billNo: d.bill_no,
-      material: d.material,
-      quantity: d.quantity,
-      crusherRate: d.crusher_rate,
-      driverName: d.driver_name || ""
-    })));
+    if (data) {
+      setEntries(data);
+    }
   };
 
-
-
   useEffect(() => {
-    loadEntries();
+    // 1. Get initial session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setAuthed(!!session);
+      setIsAuthLoading(false);
+      if (session) {
+        loadEntries();
+      }
+    });
+
+    // 2. Listen for auth state changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      setAuthed(!!session);
+      setIsAuthLoading(false);
+      if (session) {
+        loadEntries();
+      } else {
+        setEntries([]);
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
-
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      if (authed) localStorage.setItem("cf_authed", "true");
-      else localStorage.removeItem("cf_authed");
-    }
-  }, [authed]);
 
   const value: Store = {
     authed,
-    login: (u, p) => {
-      const ok = u.trim() === "9959315999" && p === "0126";
-      if (ok) setAuthed(true);
-      return ok;
+    isAuthLoading,
+    login: async (email, password) => {
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) {
+        return { success: false, error: error.message };
+      }
+      return { success: true };
     },
-    logout: () => setAuthed(false),
+    logout: async () => {
+      await supabase.auth.signOut();
+    },
     entries,
     loadEntries,
     addEntry: async (e) => {
-      const { error } = await supabase.from("daily_entries").insert({
-        vehicle_no: e.vehicle,
-        date: e.date,
-        company_name: e.company,
-        destination: e.destination,
-        bill_no: e.billNo,
-        material: e.material,
-        quantity: e.quantity,
-        crusher_rate: e.crusherRate,
-        driver_name: e.driverName || ""
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error("Not authenticated");
+      
+      await createEntryFn({
+        data: {
+          accessToken: session.access_token,
+          payload: {
+            vehicle_no: e.vehicle,
+            date: e.date,
+            company_name: e.company,
+            destination: e.destination || "",
+            bill_no: e.billNo,
+            material: e.material,
+            quantity: e.quantity,
+            crusher_rate: e.crusherRate,
+            driver_name: e.driverName || ""
+          }
+        }
       });
-      if (error) throw error;
       await loadEntries();
     },
     updateEntry: async (id, e) => {
-      const { error } = await supabase.from("daily_entries").update({
-        vehicle_no: e.vehicle,
-        date: e.date,
-        company_name: e.company,
-        destination: e.destination,
-        bill_no: e.billNo,
-        material: e.material,
-        quantity: e.quantity,
-        crusher_rate: e.crusherRate,
-        driver_name: e.driverName || ""
-      }).eq("id", id);
-      if (error) throw error;
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error("Not authenticated");
+      
+      await updateEntryFn({
+        data: {
+          accessToken: session.access_token,
+          id,
+          payload: {
+            vehicle_no: e.vehicle,
+            date: e.date,
+            company_name: e.company,
+            destination: e.destination || "",
+            bill_no: e.billNo,
+            material: e.material,
+            quantity: e.quantity,
+            crusher_rate: e.crusherRate,
+            driver_name: e.driverName || ""
+          }
+        }
+      });
       await loadEntries();
     },
     deleteEntry: async (id) => {
-      const { error } = await supabase.from("daily_entries").delete().eq("id", id);
-      if (error) throw error;
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error("Not authenticated");
+      
+      await deleteEntryFn({ data: { accessToken: session.access_token, id } });
       await loadEntries();
     },
 
 
     addBill: async (b) => {
-      const { data, error } = await supabase.from("printed_bills").insert({
-        gst_bill_no: b.gstBillNumber,
-        company_name: b.company,
-        address: b.address,
-        party_gstin_no: b.partyGstinNo,
-        month: MONTHS[new Date(b.printDate).getMonth()],
-        year: String(new Date(b.printDate).getFullYear()),
-        subtotal: b.subtotal,
-        gst_amount: b.gst,
-        grand_total: b.totalAmount,
-        items: b.rows,
-        printed_at: b.printDate
-      }).select().single();
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error("Not authenticated");
       
-      if (error) throw error;
+      const data = await createBillFn({
+        data: {
+          accessToken: session.access_token,
+          payload: {
+            gst_bill_no: b.gstBillNumber,
+            company_name: b.company,
+            address: b.address,
+            party_gstin_no: b.partyGstinNo,
+            month: MONTHS[new Date(b.printDate).getMonth()],
+            year: String(new Date(b.printDate).getFullYear()),
+            subtotal: b.subtotal,
+            gst_amount: b.gst,
+            grand_total: b.totalAmount,
+            items: b.rows,
+            printed_at: b.printDate
+          }
+        }
+      });
 
-      
       return {
         id: data.id,
         gstBillNumber: data.gst_bill_no,
@@ -174,9 +207,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       };
     },
     deleteBill: async (id) => {
-      const { error } = await supabase.from("printed_bills").delete().eq("id", id);
-      if (error) throw error;
-
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error("Not authenticated");
+      
+      await deleteBillFn({ data: { accessToken: session.access_token, id } });
     }
   };
 

@@ -1,13 +1,23 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, redirect } from "@tanstack/react-router";
 import { useMemo, useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Calendar, Building2, Truck, FileText, Receipt, TrendingUp } from "lucide-react";
 import { AppLayout } from "@/components/AppLayout";
 import { COMPANIES, MONTHS, VEHICLES, MATERIALS, useStore, type Entry } from "@/lib/store";
 import { supabase } from "@/lib/supabase";
+import { repository } from "@/lib/repository";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/billing")({
+  beforeLoad: async () => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw redirect({ to: "/" });
+    } catch (err) {
+      if (err && typeof err === "object" && "isRedirect" in err) throw err;
+      throw redirect({ to: "/" });
+    }
+  },
   head: () => ({ meta: [{ title: "Billing — Shanku Chakram" }] }),
   component: BillingPage,
 });
@@ -85,37 +95,18 @@ function BillingPage() {
               disabled={isLoading}
               onClick={async () => { 
                 setIsLoading(true);
-                let query: any = supabase.from("daily_entries").select("*");
+                const { data, error } = await repository.getUnbilledTrips({
+                  vehicle,
+                  company,
+                  material,
+                  year,
+                  month
+                });
                 
-                if (vehicle !== "all") query = query.eq("vehicle_no", vehicle);
-                if (company !== "all") query = query.eq("company_name", company);
-                if (material !== "all") query = query.eq("material", material);
-                
-                if (year) {
-                  const y = parseInt(year);
-                  if (month !== "all") {
-                    const m = MONTHS.indexOf(month);
-                    const startDate = new Date(y, m, 1).toISOString().split('T')[0];
-                    const endDate = new Date(y, m + 1, 0).toISOString().split('T')[0];
-                    query = query.gte("date", startDate).lte("date", endDate);
-                  } else {
-                    const startDate = new Date(y, 0, 1).toISOString().split('T')[0];
-                    const endDate = new Date(y, 11, 31).toISOString().split('T')[0];
-                    query = query.gte("date", startDate).lte("date", endDate);
-                  }
-                }
-
-                query = query.order("date", { ascending: true }).order("bill_no", { ascending: true });
-
-                const { data, error } = await query;
                 if (error) {
-                  toast.error("Failed to load trips");
+                  toast.error("Failed to fetch data");
                 } else if (data) {
-                  setDbTrips(data.map((d: any) => ({
-                    id: d.id, date: d.date, vehicle: d.vehicle_no, company: d.company_name,
-                    destination: d.destination || "", billNo: d.bill_no, material: d.material,
-                    quantity: d.quantity, crusherRate: d.crusher_rate, driverName: d.driver_name || ""
-                  })));
+                  setDbTrips(data);
                   setLoaded(true); 
                   toast.success("Trips loaded"); 
                 }

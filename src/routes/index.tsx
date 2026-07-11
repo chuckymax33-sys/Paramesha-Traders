@@ -1,11 +1,24 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, redirect } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Layers, Lock, User, X, Sparkles } from "lucide-react";
 import { useStore } from "@/lib/store";
 import { toast } from "sonner";
+import { supabase } from "@/lib/supabase";
 
 export const Route = createFileRoute("/")({
+  beforeLoad: async () => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        throw redirect({ to: "/daily-entry" });
+      }
+    } catch (err) {
+      // Re-throw router redirects; on SSR errors just show the login page
+      if (err && typeof err === "object" && "isRedirect" in err) throw err;
+      // No redirect needed — just show the login page
+    }
+  },
   head: () => ({
     meta: [
       { title: "Shanku Chakram — Sign in" },
@@ -75,13 +88,14 @@ function Landing() {
         {open && (
           <LoginModal
             onClose={() => setOpen(false)}
-            onLogin={(u, p) => {
-              if (login(u, p)) {
+            onLogin={async (email, password) => {
+              const res = await login(email, password);
+              if (res.success) {
                 toast.success("Welcome back, admin");
                 setOpen(false);
                 navigate({ to: "/daily-entry" });
               } else {
-                toast.error("Invalid credentials");
+                toast.error(res.error || "Invalid credentials");
               }
             }}
           />
@@ -91,9 +105,33 @@ function Landing() {
   );
 }
 
-function LoginModal({ onClose, onLogin }: { onClose: () => void; onLogin: (u: string, p: string) => void }) {
-  const [username, setUsername] = useState("");
+function LoginModal({
+  onClose,
+  onLogin,
+}: {
+  onClose: () => void;
+  onLogin: (email: string, p: string) => Promise<void>;
+}) {
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email || !password) {
+      toast.error("Please fill in all fields");
+      return;
+    }
+    setLoading(true);
+    try {
+      await onLogin(email, password);
+    } catch (err) {
+      console.error(err);
+      toast.error("An unexpected error occurred");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <motion.div
@@ -123,18 +161,21 @@ function LoginModal({ onClose, onLogin }: { onClose: () => void; onLogin: (u: st
           <p className="text-sm text-muted-foreground mt-1">Sign in to manage your supplier dashboard.</p>
         </div>
         <form
-          onSubmit={(e) => { e.preventDefault(); onLogin(username, password); }}
+          onSubmit={handleSubmit}
           className="space-y-4"
         >
           <div>
-            <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Username</label>
+            <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Email</label>
             <div className="relative">
               <User className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
               <input
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 className="glass-input w-full rounded-2xl pl-10 pr-4 py-3 text-sm outline-none focus:ring-2 focus:ring-primary/40"
-                placeholder="Phone number"
+                placeholder="admin@example.com"
+                required
+                disabled={loading}
               />
             </div>
           </div>
@@ -148,20 +189,24 @@ function LoginModal({ onClose, onLogin }: { onClose: () => void; onLogin: (u: st
                 onChange={(e) => setPassword(e.target.value)}
                 className="glass-input w-full rounded-2xl pl-10 pr-4 py-3 text-sm outline-none focus:ring-2 focus:ring-primary/40"
                 placeholder="••••••"
+                required
+                disabled={loading}
               />
             </div>
           </div>
           <div className="flex gap-3 pt-2">
             <button
               type="submit"
-              className="flex-1 rounded-2xl bg-primary text-primary-foreground px-4 py-3 text-sm font-semibold shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all"
+              disabled={loading}
+              className="flex-1 rounded-2xl bg-primary text-primary-foreground px-4 py-3 text-sm font-semibold shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all disabled:opacity-75 disabled:cursor-not-allowed"
             >
-              Login
+              {loading ? "Logging in..." : "Login"}
             </button>
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 glass-button rounded-2xl px-4 py-3 text-sm font-semibold"
+              disabled={loading}
+              className="flex-1 glass-button rounded-2xl px-4 py-3 text-sm font-semibold disabled:opacity-50"
             >
               Cancel
             </button>
